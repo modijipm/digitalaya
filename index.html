@@ -16,6 +16,13 @@ html:not(.device-allowed):not(.device-continued) #device-gate{
   align-items:center!important;justify-content:center!important;padding:1.25rem!important;
   background:#E6EBF2!important;color:#1A2436!important;text-align:center!important;overflow:auto!important;
 }
+/* Theme colors must beat media-query layout rules above */
+html[data-theme="dark"]:not(.device-allowed):not(.device-continued) .device-gate,
+html[data-theme="dark"]:not(.device-allowed):not(.device-continued) #device-gate,
+html[data-theme="dark"]:not(.device-continued) .device-gate,
+html[data-theme="dark"]:not(.device-continued) #device-gate{
+  background:#0B1220!important;color:#E8EEF7!important;
+}
 html.device-allowed .device-gate,
 html.device-continued .device-gate{display:none!important}
 @media (max-width:1279px){
@@ -25,7 +32,7 @@ html.device-continued .device-gate{display:none!important}
   html:not(.device-continued) .device-gate,html:not(.device-continued) #device-gate{
     display:flex!important;position:fixed!important;inset:0!important;z-index:2147483647!important;
     align-items:center!important;justify-content:center!important;padding:1.25rem!important;
-    background:#E6EBF2!important;color:#1A2436!important;text-align:center!important;overflow:auto!important;
+    text-align:center!important;overflow:auto!important;
   }
   html.device-allowed:not(.device-continued) .device-gate,
   html.device-allowed:not(.device-continued) #device-gate{display:flex!important}
@@ -37,7 +44,7 @@ html.device-continued .device-gate{display:none!important}
   html:not(.device-continued) .device-gate,html:not(.device-continued) #device-gate{
     display:flex!important;position:fixed!important;inset:0!important;z-index:2147483647!important;
     align-items:center!important;justify-content:center!important;padding:1.25rem!important;
-    background:#E6EBF2!important;color:#1A2436!important;text-align:center!important;overflow:auto!important;
+    text-align:center!important;overflow:auto!important;
   }
   html.device-allowed:not(.device-continued) .device-gate,
   html.device-allowed:not(.device-continued) #device-gate{display:flex!important}
@@ -49,13 +56,22 @@ html.device-continued .device-gate{display:none!important}
   html:not(.device-continued) .device-gate,html:not(.device-continued) #device-gate{
     display:flex!important;position:fixed!important;inset:0!important;z-index:2147483647!important;
     align-items:center!important;justify-content:center!important;padding:1.25rem!important;
-    background:#E6EBF2!important;color:#1A2436!important;text-align:center!important;overflow:auto!important;
+    text-align:center!important;overflow:auto!important;
   }
   html.device-allowed:not(.device-continued) .device-gate,
   html.device-allowed:not(.device-continued) #device-gate{display:flex!important}
 }
+html[data-theme="dark"] .device-gate,
+html[data-theme="dark"] #device-gate{
+  background:#0B1220!important;color:#E8EEF7!important;
+}
 @media (prefers-color-scheme:dark){
-  .device-gate,#device-gate{background:#0B1220!important;color:#E8EEF7!important}
+  html:not([data-theme="light"]) .device-gate,
+  html:not([data-theme="light"]) #device-gate{background:#0B1220!important;color:#E8EEF7!important}
+}
+html[data-theme="light"] .device-gate,
+html[data-theme="light"] #device-gate{
+  background:#E6EBF2!important;color:#1A2436!important;
 }
 </style>
 
@@ -534,6 +550,12 @@ html.device-blocked .device-gate[hidden]{display:flex!important}
 .device-gate__mark svg{width:26px;height:26px;fill:#1A2436}
 .device-gate h2{font-size:1.35rem;margin:0 0 .65rem;letter-spacing:-.02em}
 .device-gate p{margin:0 0 1.1rem;color:var(--muted);font-size:1rem;line-height:1.55}
+.device-gate__warn{margin:0 0 1rem;padding:.75rem .9rem;border-radius:10px;border:1px solid var(--saffron);background:color-mix(in srgb,var(--saffron) 18%,var(--bg-card));color:var(--text);font-size:.95rem;line-height:1.5;text-align:left}
+.device-gate__actions{display:flex;flex-direction:column;gap:.65rem}
+.device-gate__actions .btn{width:100%;min-height:44px;justify-content:center}
+.device-gate__hint{margin:0;color:var(--muted);font-size:.9rem;line-height:1.45}
+html[data-theme="dark"] .device-gate__warn{background:color-mix(in srgb,var(--saffron) 22%,#152033);color:#E8EEF7;border-color:#FF9933}
+
 @media(max-width:1279px){
   .device-gate{display:flex;position:fixed;inset:0;z-index:100000;align-items:center;justify-content:center;padding:max(1.25rem,env(safe-area-inset-top)) max(1.25rem,env(safe-area-inset-right)) max(1.25rem,env(safe-area-inset-bottom)) max(1.25rem,env(safe-area-inset-left));background:var(--bg);color:var(--text);text-align:center}
   .device-gate[hidden]{display:flex!important}
@@ -558,7 +580,7 @@ html.device-blocked .motion-gate{display:none!important}
   .motion-gate__mark svg{width:26px;height:26px;fill:#1A2436}
   .motion-gate h2{font-size:1.4rem;margin:0 0 .65rem;letter-spacing:-.02em}
   .motion-gate p{margin:0 0 .9rem;color:var(--muted);font-size:1rem;line-height:1.55}
-  .motion-gate__notice{margin:0 0 1rem;padding:.75rem .9rem;border-radius:10px;border:1px solid var(--saffron);background:color-mix(in srgb,var(--saffron) 12%,var(--bg-card));color:var(--text);font-size:.95rem;line-height:1.5}
+  .motion-gate__notice{margin:0 0 1rem;padding:.75rem .9rem;border-radius:10px;border:1px solid var(--saffron);background:color-mix(in srgb,var(--saffron) 18%,var(--bg-card));color:var(--text);font-size:.95rem;line-height:1.5}
   .motion-gate__actions{display:flex;flex-direction:column;gap:.65rem;margin-top:1.1rem}
   .motion-gate__actions .btn{width:100%;min-height:44px;justify-content:center;white-space:normal}
   .motion-gate__note{margin:0 0 .75rem;padding:.65rem .8rem;border-radius:10px;border:1px solid var(--border);background:var(--bg-elev);color:var(--muted);font-size:.92rem;line-height:1.5}
@@ -579,10 +601,10 @@ html.device-blocked .motion-gate{display:none!important}
     <h2 id="device-gate-title">Large screen recommended</h2>
     <p>DigitAlaya is built for a wide display so the layout, scroll scenes, and animations can work as intended.</p>
     <p>On phones or small screens (including iPhone, Android, HarmonyOS, KaiOS, and tablets) you will not see all animations or the complete webpage, and you may hit bugs or glitches.</p>
-    <p class="device-gate__warn" style="margin:0 0 1rem;padding:.75rem .9rem;border-radius:10px;border:1px solid #FF9933;background:color-mix(in srgb,#FF9933 12%,transparent);color:inherit;font-size:.95rem;line-height:1.5;text-align:left">Continue only if you accept a limited, possibly buggy experience on this screen.</p>
-    <div class="device-gate__actions" style="display:flex;flex-direction:column;gap:.65rem">
+    <p class="device-gate__warn">Continue only if you accept a limited, possibly buggy experience on this screen.</p>
+    <div class="device-gate__actions">
       <button type="button" class="btn" id="device-continue">Continue anyway</button>
-      <p style="margin:0;color:var(--muted,#4A5668);font-size:.9rem;line-height:1.45">Best experience: open this page on a large display (about 1280px wide or more).</p>
+      <p class="device-gate__hint">Best experience: open this page on a large display (about 1280px wide or more).</p>
     </div>
   </div>
 </div>

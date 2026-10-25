@@ -307,17 +307,18 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 @media(max-width:600px){.mesh{inset:8% -18% auto auto;width:min(340px,92vw);height:min(280px,70vw);opacity:.9}}
 .mesh__parallax{width:100%;height:100%;will-change:transform}
 .hero__art-clip{overflow:hidden;border-radius:var(--radius);max-width:420px;margin-inline:auto}
-.hero__art-parallax{width:118%;margin-left:-9%;will-change:transform}
+.hero__art-parallax{width:140%;margin-left:-20%;will-change:transform}
 .hero__art-parallax .network{width:100%;max-width:none;margin-inline:0}
 .bento__parallax-clip{overflow:hidden;border-radius:var(--radius);min-height:100%}
-.bento__parallax-inner{display:block;padding:1.15rem 1.2rem 1.35rem;min-height:118%;will-change:transform}
-.section-deco{position:absolute;inset:auto -8% -18% auto;width:min(280px,42vw);height:min(220px,36vw);pointer-events:none;z-index:0;opacity:.45;border-radius:50%;filter:blur(56px);background:radial-gradient(circle,var(--india-green),transparent 70%);will-change:transform}
-.section-deco--saffron{background:radial-gradient(circle,var(--saffron),transparent 70%);inset:12% auto auto -10%;opacity:.38}
-#mission,#impact,#vision{position:relative}
-#mission .wrap,#impact .wrap,#vision .wrap{position:relative;z-index:1}
+.bento__parallax-inner{display:block;padding:1.35rem 1.2rem 1.55rem;min-height:138%;will-change:transform}
+.section-deco{position:absolute;inset:auto -10% -22% auto;width:min(420px,58vw);height:min(340px,48vw);pointer-events:none;z-index:0;opacity:.62;border-radius:50%;filter:blur(48px);background:radial-gradient(circle,var(--india-green),transparent 70%);will-change:transform}
+.section-deco--saffron{background:radial-gradient(circle,var(--saffron),transparent 70%);inset:8% auto auto -14%;opacity:.55}
+.section-deco--teal{background:radial-gradient(circle,var(--teal-bright),transparent 70%);inset:auto auto 6% -14%;opacity:.5}
+#mission,#impact,#vision,#journey{position:relative}
+#mission .wrap,#impact .wrap,#vision .wrap,#journey .wrap{position:relative;z-index:1}
 [data-speed],[data-lag]{will-change:transform}
 @media (prefers-reduced-motion: reduce){
-  [data-speed],[data-lag],.mesh__parallax,.bento__parallax-inner,.section-deco{transform:none!important;will-change:auto}
+  [data-speed],[data-lag],.mesh__parallax,.bento__parallax-inner,.section-deco,.hero-float-badge,.journey-parallax-band{transform:none!important;will-change:auto}
 }
 .mesh__blob{position:absolute;border-radius:50%;filter:blur(48px);opacity:.55;will-change:transform;animation:drift 9s ease-in-out infinite alternate}
 .mesh__blob--1{width:60%;height:60%;left:10%;top:10%;background:var(--india-green);animation-duration:16s;animation-direction:alternate}
@@ -326,6 +327,90 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 @media(max-width:600px){.mesh__blob{opacity:.62;filter:blur(40px)}.mesh__blob--2{opacity:.55}}
 .hero__content,.hero__art{position:relative;z-index:1}
 .network{width:100%;aspect-ratio:1;max-width:420px;margin-inline:auto}
+
+/* ===== Story scaleY stack (inspiration B) ===== */
+:root{--scale:0.07;--story-space:clamp(1.25rem,4vw,2.5rem)}
+@media (prefers-reduced-motion:reduce){:root{--scale:0}}
+@media (max-width:899px){:root{--scale:0}}
+.story-scale{position:relative;transform-origin:center top;transform:scaleY(calc(1 - var(--scale)))}
+.story-scale>*{transform-origin:center top;transform:scaleY(calc(1 / max(0.001,1 - var(--scale))))}
+.story-scale>.wrap,.story-scale>.story-content{position:relative;z-index:1}
+.story-sticky-visual{position:-webkit-sticky;position:sticky;top:0;width:100%;height:100vh;height:100dvh;z-index:0;pointer-events:none;margin:0;overflow:hidden}
+.story-sticky-visual .story-mesh{position:absolute;inset:0;opacity:.55}
+.story-mesh--journey{background:
+  radial-gradient(ellipse 70% 55% at 20% 30%,color-mix(in srgb,var(--saffron) 45%,transparent),transparent 70%),
+  radial-gradient(ellipse 60% 50% at 80% 60%,color-mix(in srgb,var(--india-green) 40%,transparent),transparent 70%),
+  radial-gradient(circle at 50% 100%,color-mix(in srgb,var(--teal) 25%,transparent),transparent 55%)}
+.story-mesh--vision{background:
+  radial-gradient(ellipse 65% 50% at 70% 25%,color-mix(in srgb,var(--teal-bright) 40%,transparent),transparent 68%),
+  radial-gradient(ellipse 55% 45% at 15% 70%,color-mix(in srgb,var(--saffron) 35%,transparent),transparent 70%),
+  linear-gradient(180deg,transparent,color-mix(in srgb,var(--bg) 40%,transparent))}
+.story-mesh--impact{background:
+  radial-gradient(ellipse 80% 60% at 50% 20%,color-mix(in srgb,var(--india-green) 35%,transparent),transparent 65%),
+  radial-gradient(ellipse 50% 40% at 10% 80%,color-mix(in srgb,var(--saffron) 30%,transparent),transparent 70%)}
+.story-sticky-visual::after{content:"";position:absolute;left:0;right:0;bottom:0;height:55%;background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--bg) 55%,transparent) 45%,var(--bg) 100%);pointer-events:none}
+.story-content{position:relative;margin-top:-48vh;padding-bottom:2rem}
+@media (max-width:899px){
+  .story-sticky-visual{height:42vh;height:42dvh}
+  .story-content{margin-top:-18vh;padding:0}
+  .story-sticky-visual::after{height:70%}
+}
+.story-content .card,.story-content .milestone,.story-content .bento .card{background:color-mix(in srgb,var(--bg-card) 92%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+
+/* ===== India Stack sticky scroll tabs (inspiration A) ===== */
+#stack.stack-scroll{padding:0;overflow:visible}
+.stack-runway{position:relative;height:440vh}
+@media(max-width:576px){.stack-runway{height:480vh}}
+.stack-sticky{position:-webkit-sticky;position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));height:calc(100dvh - var(--nav-h));z-index:30;display:flex;align-items:center;padding:.75rem 0 1rem;-webkit-transform:translateZ(0);transform:translateZ(0)}
+.stack-stage{width:min(120rem,100% - 1.5rem);max-width:72rem;margin:0 auto;height:min(90vh,calc(100dvh - var(--nav-h) - 1.5rem));display:grid;grid-template-columns:.4fr 1fr;gap:1.15rem;padding:1.15rem;border-radius:1.75rem;background:var(--bg-elev);border:1px solid var(--border);box-shadow:var(--shadow);position:relative;overflow:hidden}
+.stack-stage::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);z-index:5;pointer-events:none}
+.stack-stage__left{border-radius:var(--radius);background:color-mix(in srgb,var(--bg-card) 88%,var(--teal) 12%);border:1px solid var(--border);padding:1.1rem 1.15rem 1.25rem;display:flex;flex-direction:column;min-height:0;position:relative;overflow:hidden}
+.stack-stage__left .eyebrow{margin-bottom:.35rem}
+.stack-stage__left h2{font-size:clamp(1.35rem,2.6vw,1.85rem);letter-spacing:-.02em;line-height:1.15;margin-bottom:.65rem}
+.stack-stage__left .stack-tabs-row{margin-bottom:.75rem}
+.stack-layers{position:relative;flex:1 1 auto;min-height:8rem}
+.stack-layer{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:.55rem;opacity:0;transform:translateY(22px);transition:opacity .55s var(--ease),transform .55s var(--ease);pointer-events:none}
+.stack-layer.is-active{opacity:1;transform:translateY(0);pointer-events:auto}
+.stack-layer h3{font-size:clamp(1.15rem,2.2vw,1.55rem);letter-spacing:-.02em;line-height:1.15;color:var(--text)}
+.stack-layer p{color:var(--muted);font-size:.95rem;line-height:1.45;margin:0}
+.stack-progress{height:4px;border-radius:999px;background:color-mix(in srgb,var(--border) 80%,transparent);margin-top:.85rem;overflow:hidden;flex-shrink:0}
+.stack-progress>i{display:block;height:100%;width:0%;border-radius:inherit;background:linear-gradient(90deg,var(--saffron),var(--india-green));transition:width .2s linear}
+.stack-stage__right{border-radius:var(--radius);background:var(--bg-card);border:1px solid var(--border);position:relative;overflow:hidden;min-height:0}
+.stack-visual{position:absolute;inset:0;padding:1.15rem 1.25rem;display:flex;flex-direction:column;justify-content:center;opacity:0;transform:translateY(28px);transition:opacity .55s var(--ease),transform .55s var(--ease);pointer-events:none}
+.stack-visual.is-active{opacity:1;transform:translateY(0);pointer-events:auto}
+.stack-visual .metrics{margin-top:.75rem}
+.stack-visual__art{width:100%;max-height:42%;flex:0 0 auto;margin-bottom:.5rem}
+.stack-visual__art svg{width:100%;height:auto;display:block}
+.stack-visual .metric b{font-size:clamp(1.2rem,2.4vw,1.55rem)}
+@media(max-width:700px){
+  .stack-sticky{align-items:flex-start;padding-top:.35rem;overflow:hidden}
+  .stack-stage{grid-template-columns:1fr;grid-template-rows:auto minmax(38%,1fr);height:min(92vh,calc(100dvh - var(--nav-h) - .75rem));gap:.75rem;padding:.75rem;border-radius:1.25rem}
+  .stack-stage__left{padding:.85rem .9rem}
+  .stack-stage__left h2{font-size:1.2rem;margin-bottom:.4rem}
+  .stack-layers{min-height:5.5rem}
+  .stack-layer h3{font-size:1.05rem}
+  .stack-layer p{font-size:.85rem}
+  .stack-visual{padding:.85rem .9rem;justify-content:flex-start}
+  .stack-visual__art{max-height:28%}
+  .stack-visual .metrics{grid-template-columns:1fr 1fr;gap:.45rem}
+}
+@media(prefers-reduced-motion:reduce){
+  .stack-layer,.stack-visual{transition:none;transform:none}
+  .story-scale,.story-scale>*{transform:none}
+}
+
+/* Stronger parallax layer chrome */
+.hero-float-badge{position:absolute;right:6%;top:18%;z-index:2;padding:.55rem .9rem;border-radius:999px;font-weight:800;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:var(--btn-fg);background:var(--btn-bg);border:1px solid color-mix(in srgb,var(--saffron) 50%,transparent);box-shadow:0 10px 28px color-mix(in srgb,var(--india-green) 28%,transparent);will-change:transform}
+@media(max-width:600px){.hero-float-badge{right:4%;top:10%;font-size:.68rem;padding:.45rem .7rem}}
+.journey-parallax-band{position:absolute;left:4%;right:4%;top:8%;height:min(180px,28vw);border-radius:50%;filter:blur(40px);opacity:.55;background:radial-gradient(circle,var(--saffron),transparent 70%);pointer-events:none;z-index:0;will-change:transform}
+#journey .journey-track{position:relative;z-index:1}
+.mesh__parallax{width:100%;height:100%}
+.hero__art-parallax{width:140%;margin-left:-20%}
+.bento__parallax-inner{min-height:138%;padding-top:1.45rem;padding-bottom:1.65rem}
+.section-deco{width:min(420px,58vw);height:min(340px,48vw);opacity:.62;filter:blur(48px)}
+.section-deco--saffron{opacity:.55}
+.section-deco--teal{background:radial-gradient(circle,var(--teal-bright),transparent 70%);opacity:.5;inset:auto auto 8% -12%}
+
 /* ===== Fun entrance reveals (GPU: opacity + transform only) ===== */
 .js .reveal,.js .reveal-stagger>*{will-change:opacity,transform}
 .js .reveal.is-in,.js .reveal-stagger>*.is-in{will-change:auto}
@@ -495,6 +580,13 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 .tab-panels .panel.is-active .metric:nth-child(2){animation-delay:.14s}
 .tab-panels .panel.is-active .metric:nth-child(3){animation-delay:.24s}
 .tab-panels .panel.is-active .metric:nth-child(4){animation-delay:.34s}
+.stack-visual .metrics{display:grid}
+.stack-visual.is-active .metric{animation:metricPop .9s var(--ease-out) both}
+.stack-visual.is-active .metric:nth-child(1){animation-delay:.05s}
+.stack-visual.is-active .metric:nth-child(2){animation-delay:.14s}
+.stack-visual.is-active .metric:nth-child(3){animation-delay:.24s}
+.stack-visual.is-active .metric:nth-child(4){animation-delay:.34s}
+@media(prefers-reduced-motion:reduce){.stack-visual.is-active .metric{animation:none!important}}
 @keyframes metricPop{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
 .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-top:1rem}
 .metric{background:var(--bg-elev);border-radius:14px;padding:.75rem .85rem;border:1px solid var(--border)}
@@ -896,9 +988,10 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
 </div>
 <main id="main">
 <section class="hero" id="top" data-hue="200">
-  <div class="mesh" aria-hidden="true"><div class="mesh__parallax" data-speed="0.35">
+  <div class="mesh" aria-hidden="true"><div class="mesh__parallax" data-speed="0.18" data-lag="0.35">
     <div class="mesh__blob mesh__blob--1"></div><div class="mesh__blob mesh__blob--2"></div>
   </div></div>
+  <div class="hero-float-badge" data-speed="0.22" data-lag="0.55" aria-hidden="true">Digital Public Goods</div>
   <div class="wrap hero__grid">
     <div class="hero__content reveal-stagger">
       <p class="eyebrow reveal reveal--soft">Digital India · 2015 → 2026</p>
@@ -916,7 +1009,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
     </div>
     <div class="hero__art reveal reveal--fade" aria-hidden="true">
       <div class="hero__art-clip">
-        <div class="hero__art-parallax" data-speed="auto" data-lag="0.45">
+        <div class="hero__art-parallax" data-speed="auto" data-lag="0.6">
           <svg class="network" id="net" viewBox="0 0 400 400" role="img"><title>Abstract digital network</title>
             <g fill="none" stroke="currentColor" stroke-width="1.2" opacity=".35" id="net-edges"></g>
             <g id="net-nodes"></g>
@@ -927,19 +1020,21 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   </div>
 </section>
 <section class="section" id="mission" data-hue="190">
-  <div class="section-deco" data-speed="0.75" aria-hidden="true"></div>
+  <div class="section-deco" data-speed="0.2" data-lag="0.45" aria-hidden="true"></div>
   <div class="wrap">
     <p class="eyebrow reveal reveal--soft">Mission</p>
     <p class="mission-words reveal reveal--rise" id="mission-words">Digital India set out to transform India into a knowledge economy and a digitally empowered society: connecting villages, simplifying governance, and building open digital public infrastructure that millions can trust every day.</p>
   </div>
 </section>
-<section class="section" id="journey" data-hue="185">
-  <div class="wrap">
+<section class="section story-scale" id="journey" data-hue="185">
+  <div class="story-sticky-visual" aria-hidden="true"><div class="story-mesh story-mesh--journey" data-speed="0.25" data-lag="0.4"></div></div>
+  <div class="wrap story-content">
     <p class="eyebrow reveal reveal--soft">Timeline</p>
     <h2 class="reveal reveal--pop">Journey 2015 → 2026</h2>
     <p class="lead reveal reveal--rise">Milestones drawn from public sources. The line fills as you scroll.</p>
+    <div class="journey-parallax-band" data-speed="0.9" data-lag="0.5" aria-hidden="true"></div>
     <div class="journey-track reveal reveal--fade">
-      <svg class="journey-svg" viewBox="0 0 1000 40" aria-hidden="true">
+      <svg class="journey-svg" viewBox="0 0 1000 40" aria-hidden="true" data-speed="0.55" data-lag="0.35">
         <path class="journey-line" d="M20 20 H980"/>
         <path class="journey-line journey-line--draw" id="journey-draw" pathLength="1" d="M20 20 H980"/>
       </svg>
@@ -997,56 +1092,111 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
     </div>
   </div>
 </section>
-<section class="section" id="stack" data-hue="205">
-  <div class="wrap">
-    <p class="eyebrow reveal reveal--soft">Ecosystem</p>
-    <h2 class="reveal reveal--pop">India Stack: switch the layer</h2>
-    <div class="stack-tabs-row reveal reveal--soft">
-      <button type="button" class="icon-btn stack-arrow" id="stack-prev" aria-label="Previous India Stack tab">‹</button>
-      <div class="tabs" role="tablist" aria-label="India Stack layers" id="stack-tabs">
-        <button type="button" role="tab" id="tab-upi" aria-controls="panel-upi" aria-selected="true" tabindex="0">UPI (Payments)</button>
-        <button type="button" role="tab" id="tab-dl" aria-controls="panel-dl" aria-selected="false" tabindex="-1">DigiLocker (Identity)</button>
-        <button type="button" role="tab" id="tab-ondc" aria-controls="panel-ondc" aria-selected="false" tabindex="-1">ONDC (Commerce)</button>
-        <button type="button" role="tab" id="tab-abdm" aria-controls="panel-abdm" aria-selected="false" tabindex="-1">ABDM (Healthcare)</button>
-      </div>
-      <button type="button" class="icon-btn stack-arrow" id="stack-next" aria-label="Next India Stack tab">›</button>
-    </div>
-    <div class="tab-panels reveal reveal--rise">
-      <div class="panel card is-active" role="tabpanel" id="panel-upi" aria-labelledby="tab-upi">
-        <h3>Unified Payments Interface</h3>
-        <p>Real-time payments rails launched 25 Aug 2016. Figures from NPCI reporting.</p>
-        <div class="metrics">
-          <div class="metric"><b data-count="24162" data-locale="en-IN">0</b><span>Cr transactions, FY2025-26</span></div>
-          <div class="metric"><b data-count="314" data-prefix="~₹">0</b><span>Lakh crore value, FY2025-26</span></div>
-          <div class="metric"><b data-count="703">0</b><span>Banks on UPI (from 44)</span></div>
-          <div class="metric"><b data-count="13000" data-prefix="~" data-suffix="×" data-locale="en-IN">0</b><span>Txn growth vs FY2016-17 (1.78 Cr)</span></div>
+<section class="section stack-scroll" id="stack" data-hue="205">
+  <div class="stack-runway" id="stack-runway">
+    <div class="stack-sticky">
+      <div class="stack-stage" id="stack-stage">
+        <div class="stack-stage__left">
+          <p class="eyebrow">Ecosystem</p>
+          <h2>India Stack: scroll the layers</h2>
+          <div class="stack-tabs-row">
+            <button type="button" class="icon-btn stack-arrow" id="stack-prev" aria-label="Previous India Stack tab">‹</button>
+            <div class="tabs" role="tablist" aria-label="India Stack layers" id="stack-tabs">
+              <button type="button" role="tab" id="tab-upi" aria-controls="panel-upi" aria-selected="true" tabindex="0">UPI</button>
+              <button type="button" role="tab" id="tab-dl" aria-controls="panel-dl" aria-selected="false" tabindex="-1">DigiLocker</button>
+              <button type="button" role="tab" id="tab-ondc" aria-controls="panel-ondc" aria-selected="false" tabindex="-1">ONDC</button>
+              <button type="button" role="tab" id="tab-abdm" aria-controls="panel-abdm" aria-selected="false" tabindex="-1">ABDM</button>
+            </div>
+            <button type="button" class="icon-btn stack-arrow" id="stack-next" aria-label="Next India Stack tab">›</button>
+          </div>
+          <div class="stack-layers">
+            <div class="stack-layer is-active" role="tabpanel" id="panel-upi" aria-labelledby="tab-upi" data-stack-i="0">
+              <h3>Unified Payments Interface</h3>
+              <p>Real-time payments rails launched 25 Aug 2016. Figures from NPCI reporting.</p>
+            </div>
+            <div class="stack-layer" role="tabpanel" id="panel-dl" aria-labelledby="tab-dl" data-stack-i="1" hidden>
+              <h3>DigiLocker</h3>
+              <p>Digital document wallet linked to trusted issuers. As of Mar 2026.</p>
+            </div>
+            <div class="stack-layer" role="tabpanel" id="panel-ondc" aria-labelledby="tab-ondc" data-stack-i="2" hidden>
+              <h3>Open Network for Digital Commerce</h3>
+              <p>Open e-commerce protocol. Mid-2026 figures are reported and approximate.</p>
+            </div>
+            <div class="stack-layer" role="tabpanel" id="panel-abdm" aria-labelledby="tab-abdm" data-stack-i="3" hidden>
+              <h3>Ayushman Bharat Digital Mission</h3>
+              <p>Health IDs and linked records. As of Jul 2026 (Govt of India).</p>
+            </div>
+          </div>
+          <div class="stack-progress" aria-hidden="true"><i id="stack-progress-bar"></i></div>
         </div>
-      </div>
-      <div class="panel card" role="tabpanel" id="panel-dl" aria-labelledby="tab-dl" hidden>
-        <h3>DigiLocker</h3>
-        <p>Digital document wallet linked to trusted issuers. As of Mar 2026.</p>
-        <div class="metrics">
-          <div class="metric"><b data-count="70.69" data-decimals="2" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Registered users (Mar 2026)</span></div>
-          <div class="metric"><b data-count="850" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Documents issued (Mar 2026)</span></div>
-          <div class="metric"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations (Mar 2026)</span></div>
-        </div>
-      </div>
-      <div class="panel card" role="tabpanel" id="panel-ondc" aria-labelledby="tab-ondc" hidden>
-        <h3>Open Network for Digital Commerce</h3>
-        <p>Open e-commerce protocol. Mid-2026 figures are reported and approximate.</p>
-        <div class="metrics">
-          <div class="metric"><b data-count="5" data-prefix="~" data-suffix=" lakh+">0</b><span>Sellers (reported, approx.)</span></div>
-          <div class="metric"><b data-count="1000" data-prefix="~" data-locale="en-IN">0</b><span>Cities (reported, approx.)</span></div>
-          <div class="metric"><b>Open</b><span>Network: not a single app store</span></div>
-        </div>
-      </div>
-      <div class="panel card" role="tabpanel" id="panel-abdm" aria-labelledby="tab-abdm" hidden>
-        <h3>Ayushman Bharat Digital Mission</h3>
-        <p>Health IDs and linked records. As of Jul 2026 (Govt of India).</p>
-        <div class="metrics">
-          <div class="metric"><b data-count="93" data-prefix="&gt;" data-suffix=" Cr">0</b><span>ABHA accounts (Jul 2026)</span></div>
-          <div class="metric"><b data-count="104" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Health records linked (Jul 2026)</span></div>
-          <div class="metric"><b data-count="48" data-prefix="&gt;" data-suffix=" Cr">0</b><span>eSanjeevani teleconsultations (Jun 2026)</span></div>
+        <div class="stack-stage__right" aria-hidden="false">
+          <div class="stack-visual is-active" data-stack-i="0" id="visual-upi">
+            <div class="stack-visual__art">
+              <svg viewBox="0 0 360 140" role="img" aria-label="UPI flow"><title>UPI</title>
+                <rect x="16" y="40" width="70" height="48" rx="12" fill="var(--bg-elev)" stroke="var(--teal)" stroke-width="2"/>
+                <text x="51" y="69" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">Payer</text>
+                <rect x="274" y="40" width="70" height="48" rx="12" fill="var(--bg-elev)" stroke="var(--india-green)" stroke-width="2"/>
+                <text x="309" y="69" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">Payee</text>
+                <path d="M86 64 C140 10,220 118,274 64" fill="none" stroke="var(--saffron)" stroke-width="2.5" stroke-dasharray="5 5"/>
+                <circle cx="180" cy="55" r="10" fill="var(--orange-bright)"/>
+              </svg>
+            </div>
+            <div class="metrics">
+              <div class="metric"><b data-count="24162" data-locale="en-IN">0</b><span>Cr transactions, FY2025-26</span></div>
+              <div class="metric"><b data-count="314" data-prefix="~₹">0</b><span>Lakh crore value, FY2025-26</span></div>
+              <div class="metric"><b data-count="703">0</b><span>Banks on UPI (from 44)</span></div>
+              <div class="metric"><b data-count="13000" data-prefix="~" data-suffix="×" data-locale="en-IN">0</b><span>Txn growth vs FY2016-17</span></div>
+            </div>
+          </div>
+          <div class="stack-visual" data-stack-i="1" id="visual-dl">
+            <div class="stack-visual__art">
+              <svg viewBox="0 0 360 140" role="img" aria-label="DigiLocker"><title>DigiLocker</title>
+                <rect x="110" y="28" width="140" height="90" rx="14" fill="var(--bg-elev)" stroke="var(--teal)" stroke-width="2"/>
+                <rect x="128" y="48" width="104" height="12" rx="4" fill="var(--india-green)" opacity=".55"/>
+                <rect x="128" y="70" width="84" height="10" rx="4" fill="var(--saffron)" opacity=".55"/>
+                <rect x="128" y="90" width="96" height="10" rx="4" fill="var(--teal-bright)" opacity=".45"/>
+                <circle cx="250" cy="40" r="16" fill="var(--india-green)" opacity=".85"/>
+                <path d="M243 40 l5 5 10-12" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="metrics">
+              <div class="metric"><b data-count="70.69" data-decimals="2" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Registered users (Mar 2026)</span></div>
+              <div class="metric"><b data-count="850" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Documents issued (Mar 2026)</span></div>
+              <div class="metric"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations (Mar 2026)</span></div>
+            </div>
+          </div>
+          <div class="stack-visual" data-stack-i="2" id="visual-ondc">
+            <div class="stack-visual__art">
+              <svg viewBox="0 0 360 140" role="img" aria-label="ONDC network"><title>ONDC</title>
+                <circle cx="180" cy="70" r="22" fill="var(--teal)" opacity=".9"/>
+                <circle cx="90" cy="40" r="14" fill="var(--saffron)" opacity=".85"/>
+                <circle cx="270" cy="40" r="14" fill="var(--india-green)" opacity=".85"/>
+                <circle cx="90" cy="100" r="14" fill="var(--orange-bright)" opacity=".8"/>
+                <circle cx="270" cy="100" r="14" fill="var(--teal-bright)" opacity=".8"/>
+                <path d="M102 48 L162 62 M258 48 L198 62 M102 92 L162 78 M258 92 L198 78" stroke="var(--border)" stroke-width="2"/>
+              </svg>
+            </div>
+            <div class="metrics">
+              <div class="metric"><b data-count="5" data-prefix="~" data-suffix=" lakh+">0</b><span>Sellers (reported, approx.)</span></div>
+              <div class="metric"><b data-count="1000" data-prefix="~" data-locale="en-IN">0</b><span>Cities (reported, approx.)</span></div>
+              <div class="metric"><b>Open</b><span>Network: not a single app store</span></div>
+            </div>
+          </div>
+          <div class="stack-visual" data-stack-i="3" id="visual-abdm">
+            <div class="stack-visual__art">
+              <svg viewBox="0 0 360 140" role="img" aria-label="ABDM health"><title>ABDM</title>
+                <rect x="70" y="35" width="220" height="70" rx="16" fill="var(--bg-elev)" stroke="var(--india-green)" stroke-width="2"/>
+                <path d="M180 48 v44 M158 70 h44" stroke="var(--saffron)" stroke-width="8" stroke-linecap="round"/>
+                <circle cx="110" cy="70" r="10" fill="var(--teal-bright)" opacity=".7"/>
+                <circle cx="250" cy="70" r="10" fill="var(--teal)" opacity=".7"/>
+              </svg>
+            </div>
+            <div class="metrics">
+              <div class="metric"><b data-count="93" data-prefix="&gt;" data-suffix=" Cr">0</b><span>ABHA accounts (Jul 2026)</span></div>
+              <div class="metric"><b data-count="104" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Health records linked (Jul 2026)</span></div>
+              <div class="metric"><b data-count="48" data-prefix="&gt;" data-suffix=" Cr">0</b><span>eSanjeevani teleconsultations (Jun 2026)</span></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1068,17 +1218,19 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
     </div>
   </div>
 </section>
-<section class="section" id="impact" data-hue="170">
-  <div class="section-deco section-deco--saffron" data-speed="0.8" aria-hidden="true"></div>
-  <div class="wrap">
+<section class="section story-scale" id="impact" data-hue="170">
+  <div class="story-sticky-visual" aria-hidden="true"><div class="story-mesh story-mesh--impact" data-speed="0.28" data-lag="0.45"></div></div>
+  <div class="section-deco section-deco--saffron" data-speed="0.2" data-lag="0.5" aria-hidden="true"></div>
+  <div class="section-deco section-deco--teal" data-speed="0.85" data-lag="0.4" aria-hidden="true"></div>
+  <div class="wrap story-content">
     <p class="eyebrow reveal reveal--soft">Impact</p>
     <h2 class="reveal reveal--pop">Digital India in figures</h2>
     <p class="lead reveal reveal--rise">Bento of verified public figures. Each tile cites an as-of date.</p>
     <div class="bento reveal-stagger">
-      <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations</span><small>as of Mar 2026 · UIDAI</small></div></div></div>
-      <div class="card spot tilt"><b data-count="59.09" data-decimals="2" data-suffix=" Cr">0</b><span>Jan Dhan accounts</span><small>as of Aug 2026 · from 14.72 Cr in Mar 2015</small></div>
+      <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto" data-lag="0.45"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations</span><small>as of Mar 2026 · UIDAI</small></div></div></div>
+      <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto" data-lag="0.55"><b data-count="59.09" data-decimals="2" data-suffix=" Cr">0</b><span>Jan Dhan accounts</span><small>as of Aug 2026 · from 14.72 Cr in Mar 2015</small></div></div></div>
       <div class="card spot tilt"><b data-count="1.11" data-decimals="2" data-prefix="~" data-suffix=" Bn">0</b><span>Internet subscribers</span><small>as of Jun 2026 · TRAI</small></div>
-      <div class="card spot tilt"><b data-count="2.15" data-decimals="2" data-prefix="&gt;" data-suffix=" Lakh">0</b><span>Gram panchayats on BharatNet</span><small>~97% · Jan 2026</small></div>
+      <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto" data-lag="0.4"><b data-count="2.15" data-decimals="2" data-prefix="&gt;" data-suffix=" Lakh">0</b><span>Gram panchayats on BharatNet</span><small>~97% · Jan 2026</small></div></div></div>
       <div class="card spot tilt"><b data-count="6.5" data-decimals="1" data-prefix="&gt;" data-suffix=" Lakh">0</b><span>Common Service Centres</span><small>public access points</small></div>
       <div class="card spot tilt"><b data-count="18.4" data-decimals="1" data-prefix="&gt;₹" data-suffix=" Lakh Cr">0</b><span>GeM cumulative transactions</span><small>as of Jun 2026 · &gt;11 lakh MSMEs</small></div>
       <div class="card spot tilt"><b data-count="9.20" data-decimals="2" data-prefix="&gt;" data-suffix=" Cr">0</b><span>AgriStack farmer ID records</span><small>as of Mar 2026</small></div>
@@ -1136,9 +1288,10 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
     </div>
   </div>
 </section>
-<section class="section" id="vision" data-hue="220">
-  <div class="section-deco" data-speed="0.85" data-lag="0.35" aria-hidden="true"></div>
-  <div class="wrap">
+<section class="section story-scale" id="vision" data-hue="220">
+  <div class="story-sticky-visual" aria-hidden="true"><div class="story-mesh story-mesh--vision" data-speed="0.2" data-lag="0.5"></div></div>
+  <div class="section-deco" data-speed="0.9" data-lag="0.55" aria-hidden="true"></div>
+  <div class="wrap story-content">
     <p class="eyebrow reveal reveal--soft">See the Vision</p>
     <h2 class="reveal reveal--pop">Vision 2047</h2>
     <p class="lead reveal reveal--rise">Looking ahead in general terms: inclusive multilingual AI, trusted digital public goods, and citizens who stay safe online.</p>
@@ -1229,7 +1382,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
       <dt>Ctrl / ⌘ + K</dt><dd>Open quick jump</dd>
       <dt>?</dt><dd>Show this cheatsheet</dd>
       <dt>Esc</dt><dd>Close overlays</dd>
-      <dt>← →</dt><dd>Switch India Stack tabs (when focused)</dd>
+      <dt>← →</dt><dd>Switch India Stack layers (scrolls the sticky stage)</dd>
     </dl>
     <button type="button" class="btn help-modal__close" id="help-close">Got it</button>
   </div>
@@ -2176,64 +2329,128 @@ window.addEventListener("digitalaya-device-continued", function(){
   }
 })();
 
-/* ===== TABS (India Stack): click, ‹› buttons, arrow keys ===== */
+/* ===== TABS (India Stack): sticky scroll runway + click/‹›/keys ===== */
 (function TABS(){
+  const runway = document.getElementById("stack-runway");
   const list = document.getElementById("stack-tabs");
   if (!list) return;
   const tabs = [...list.querySelectorAll('[role="tab"]')];
   if (!tabs.length) return;
-  const panels = tabs.map(t => document.getElementById(t.getAttribute("aria-controls")));
+  const layers = [...document.querySelectorAll(".stack-layer")];
+  const visuals = [...document.querySelectorAll(".stack-visual")];
+  const progressBar = document.getElementById("stack-progress-bar");
+  const N = tabs.length;
+  let current = 0;
+  let lockScroll = false;
+  let lockTimer = 0;
 
-  function indexOfSelected(){
-    const i = tabs.findIndex(t => t.getAttribute("aria-selected") === "true");
-    return i < 0 ? 0 : i;
+  function navH(){
+    const v = getComputedStyle(document.documentElement).getPropertyValue("--nav-h");
+    const n = parseFloat(v);
+    return isNaN(n) ? 64 : n;
   }
 
-  function activate(i, focusTab){
-    i = ((i % tabs.length) + tabs.length) % tabs.length;
-    tabs.forEach((t,n) => {
+  function activate(i, opts){
+    opts = opts || {};
+    i = ((i % N) + N) % N;
+    const changed = i !== current;
+    current = i;
+    tabs.forEach((t, n) => {
       const on = n === i;
       t.setAttribute("aria-selected", on ? "true" : "false");
       t.tabIndex = on ? 0 : -1;
-      const p = panels[n];
-      if (!p) return;
-      p.classList.toggle("is-active", on);
-      p.hidden = !on;
     });
-    if (focusTab !== false) tabs[i].focus({preventScroll:true});
-    /* Newly shown panel metrics need a count-up pass (were display:none / zero-box) */
-    try {
-      if (typeof window.__digitalayaCountersWake === "function") {
-        setTimeout(function(){ window.__digitalayaCountersWake("tab"); }, 30);
-      }
-    } catch (eTab) {}
+    layers.forEach((el, n) => {
+      const on = n === i;
+      el.classList.toggle("is-active", on);
+      if (on) el.removeAttribute("hidden");
+      else el.setAttribute("hidden", "");
+    });
+    visuals.forEach((el, n) => {
+      el.classList.toggle("is-active", n === i);
+    });
+    if (opts.focusTab) {
+      try { tabs[i].focus({preventScroll:true}); } catch (e) {}
+    }
+    if (opts.scroll && runway) scrollToStep(i);
+    if (changed || opts.force) {
+      try {
+        if (typeof window.__digitalayaCountersWake === "function") {
+          setTimeout(function(){ window.__digitalayaCountersWake("tab"); }, 40);
+        }
+      } catch (eTab) {}
+    }
   }
 
-  function move(delta){ activate(indexOfSelected() + delta, true); }
+  function scrollToStep(i){
+    if (!runway) return;
+    const topAbs = runway.getBoundingClientRect().top + scrollY;
+    const travel = Math.max(1, runway.offsetHeight - innerHeight);
+    /* park in the middle of each segment */
+    const target = topAbs + ((i + 0.35) / N) * travel;
+    lockScroll = true;
+    clearTimeout(lockTimer);
+    try {
+      scrollTo({ top: Math.max(0, target), behavior: reduceMotion ? "auto" : "smooth" });
+    } catch (e) {
+      scrollTo(0, Math.max(0, target));
+    }
+    lockTimer = setTimeout(function(){ lockScroll = false; onScroll(); }, reduceMotion ? 50 : 700);
+  }
 
-  tabs.forEach((t,i) => {
-    t.addEventListener("click", () => activate(i, false));
+  function progressFromScroll(){
+    if (!runway) return 0;
+    const rect = runway.getBoundingClientRect();
+    const travel = Math.max(1, rect.height - innerHeight);
+    /* sticky engages when runway top hits nav */
+    const scrolled = navH() - rect.top;
+    return Math.max(0, Math.min(1, scrolled / travel));
+  }
+
+  function onScroll(){
+    if (!runway || lockScroll) return;
+    const p = progressFromScroll();
+    if (progressBar) progressBar.style.width = (p * 100).toFixed(2) + "%";
+    /* only drive step while the runway is intersecting the viewport meaningfully */
+    const rect = runway.getBoundingClientRect();
+    if (rect.bottom < navH() + 8 || rect.top > innerHeight - 8) return;
+    const step = Math.min(N - 1, Math.floor(p * N + 1e-6));
+    if (step !== current) activate(step, { focusTab: false });
+  }
+
+  function move(delta){ activate(current + delta, { focusTab: true, scroll: !!runway }); }
+
+  tabs.forEach((t, i) => {
+    t.addEventListener("click", function(){
+      activate(i, { focusTab: false, scroll: !!runway });
+    });
   });
 
-  // Keyboard: arrows / Home / End while focus is inside the tablist
-  list.addEventListener("keydown", e => {
+  list.addEventListener("keydown", function(e){
     const key = e.key;
     let handled = true;
     if (key === "ArrowRight" || key === "ArrowDown" || key === "Right" || key === "Down") move(1);
     else if (key === "ArrowLeft" || key === "ArrowUp" || key === "Left" || key === "Up") move(-1);
-    else if (key === "Home") activate(0, true);
-    else if (key === "End") activate(tabs.length - 1, true);
+    else if (key === "Home") activate(0, { focusTab: true, scroll: !!runway });
+    else if (key === "End") activate(N - 1, { focusTab: true, scroll: !!runway });
     else handled = false;
     if (handled) e.preventDefault();
   });
 
   const prev = document.getElementById("stack-prev");
   const next = document.getElementById("stack-next");
-  if (prev) prev.addEventListener("click", () => move(-1));
-  if (next) next.addEventListener("click", () => move(1));
+  if (prev) prev.addEventListener("click", function(){ move(-1); });
+  if (next) next.addEventListener("click", function(){ move(1); });
 
-  // Expose for debugging / other features
-  window.__stackActivate = activate;
+  if (runway) {
+    addEventListener("scroll", onScroll, { passive: true });
+    addEventListener("resize", onScroll, { passive: true });
+    if (window.__digitalayaRegisterWake) window.__digitalayaRegisterWake(onScroll);
+    requestAnimationFrame(onScroll);
+  }
+
+  activate(0, { force: true, focusTab: false });
+  window.__stackActivate = function(i){ activate(i, { focusTab: false, scroll: !!runway }); };
 })();
 
 /* ===== SERVICES STRIP ===== */

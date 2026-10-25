@@ -929,7 +929,7 @@ html.device-blocked .motion-gate{display:none!important}
     <div class="cmp">
       <div class="bars" id="upi-bars">
         <div class="bar-row"><label><span>FY2016-17</span><span>1.78 crore txns</span></label><div class="bar bar--then"><i style="width:8%"></i></div></div>
-        <div class="bar-row"><label><span>FY2025-26</span><span>24,162 crore txns</span></label><div class="bar bar--now"><i data-w="100"></i></div></div>
+        <div class="bar-row"><label><span>FY2025-26</span><span><b data-count="24162" data-locale="en-IN" data-suffix=" crore txns">0</b></span></label><div class="bar bar--now"><i data-w="100" style="width:0"></i></div></div>
         <p><span class="badge-x">~13,000× transactions</span> · Banks on UPI: <strong>44 → 703</strong></p>
         <p><small>Value: ~₹0.07 lakh crore → ~₹314 lakh crore (NPCI / reported).</small></p>
       </div>
@@ -1637,25 +1637,62 @@ window.addEventListener("digitalaya-device-continued", function(){
       if (isNearViewport(el)) runCount(el);
     });
   }
-  function animateUpiBar(force){
+  function barInView(el){
+    const r = el.getBoundingClientRect();
+    const vh = innerHeight || 800;
+    if (!r.width && !r.height) return false;
+    const visible = Math.min(r.bottom, vh) - Math.max(r.top, 0);
+    return visible > Math.min(r.height * 0.35, 18) && r.top < vh * 0.88;
+  }
+  function animateUpiBar(/* force ignored for off-screen; kept for API */){
     const bar = document.querySelector("#upi-bars .bar--now i");
     if (!bar) return;
-    if (bar.dataset.grown === "1") return;
-    const r = bar.getBoundingClientRect();
-    const vh = innerHeight || 800;
-    const hasBox = !!(r.width || r.height);
-    if (!force && hasBox && !(r.top < vh * 0.82 && r.bottom > vh * 0.12)) return;
-    /* When gated (zero box) wait unless force after continue */
-    if (!force && !hasBox) return;
-    const w = bar.getAttribute("data-w") || "100";
-    bar.dataset.grown = "1";
-    bar.style.width = "0";
-    void bar.offsetWidth; /* reflow */
-    requestAnimationFrame(function(){
-      bar.style.width = w + "%";
-    });
+    if (bar.dataset.grown === "1" || bar.dataset.growing === "1") return;
+    if (!barInView(bar) && !barInView(document.getElementById("upi-bars") || bar)) return;
+    const target = Math.max(0, Math.min(100, parseFloat(bar.getAttribute("data-w") || "100") || 100));
+    bar.dataset.growing = "1";
+    /* Kill CSS transition — Android often skips 0→100%; drive width in JS */
+    bar.style.transition = "none";
+    bar.style.width = "0%";
+    void bar.offsetWidth;
+    if (reduceMotion) {
+      bar.style.width = target + "%";
+      bar.dataset.grown = "1";
+      bar.dataset.growing = "0";
+      return;
+    }
+    const dur = 2800;
+    const t0 = performance.now();
+    const ease = t => 1 - Math.pow(1 - t, 3);
+    function tick(now){
+      const t = Math.min(1, (now - t0) / dur);
+      bar.style.width = (target * ease(t)) + "%";
+      if (t < 1) requestAnimationFrame(tick);
+      else {
+        bar.style.width = target + "%";
+        bar.dataset.grown = "1";
+        bar.dataset.growing = "0";
+      }
+    }
+    requestAnimationFrame(tick);
   }
   window.__digitalayaAnimateUpiBar = animateUpiBar;
+  /* Dedicated observer: only grow when the FY2025-26 bar is actually on screen */
+  (function watchUpiBar(){
+    const bar = document.querySelector("#upi-bars .bar--now i");
+    const host = document.getElementById("upi-bars") || bar;
+    if (!bar || !host) return;
+    bar.style.width = "0%";
+    const bio = new IntersectionObserver(ents => {
+      ents.forEach(e => {
+        if (!e.isIntersecting) return;
+        animateUpiBar();
+        if (bar.dataset.grown === "1") { try { bio.disconnect(); } catch(err){} }
+      });
+    }, {threshold:0.4, rootMargin:"-5% 0px -12% 0px"});
+    bio.observe(host);
+    window.__digitalayaUpiBarIO = bio;
+  })();
 
   const io = new IntersectionObserver(entries => {
     entries.forEach(en => {
@@ -1673,13 +1710,9 @@ window.addEventListener("digitalaya-device-continued", function(){
   });
 
   function wakeCounts(reason){
-    const continued = document.documentElement.classList.contains("device-continued");
     forceVisibleCounts();
-    if (continued || /continued|late|later|raf/.test(String(reason||""))) {
-      animateUpiBar(!!continued);
-    } else {
-      animateUpiBar(false);
-    }
+    /* Never force-grow off-screen — only try if bar is in view */
+    animateUpiBar();
     countEls.forEach(el => {
       if (el.dataset.counted === "1") return;
       try { io.unobserve(el); io.observe(el); } catch(e){}
@@ -1688,18 +1721,18 @@ window.addEventListener("digitalaya-device-continued", function(){
   window.__digitalayaCountersWake = wakeCounts;
   if (window.__digitalayaRegisterWake) window.__digitalayaRegisterWake(wakeCounts);
 
-  [0, 100, 400, 1000].forEach(ms => {
+  [0, 120, 500, 1200].forEach(ms => {
     setTimeout(function(){
       if (document.documentElement.classList.contains("device-continued") ||
           document.documentElement.classList.contains("device-allowed")) {
         forceVisibleCounts();
-        animateUpiBar(document.documentElement.classList.contains("device-continued"));
+        animateUpiBar();
       }
     }, ms);
   });
   if (document.documentElement.classList.contains("device-continued")) {
     forceVisibleCounts();
-    animateUpiBar(true);
+    animateUpiBar();
   }
 })();
 
@@ -1740,17 +1773,7 @@ window.addEventListener("digitalaya-device-continued", function(){
       if (all || (r.top < vh * 1.35 && r.bottom > -vh * 0.2)) c.classList.add("is-in");
     });
     if (typeof window.__digitalayaAnimateUpiBar === "function") {
-      window.__digitalayaAnimateUpiBar(!!all);
-    } else {
-      const bars = document.querySelector("#upi-bars .bar--now i");
-      if (bars) {
-        const br = bars.getBoundingClientRect();
-        if (all || (br.top < vh && br.bottom > 0)) {
-          bars.style.width = "0";
-          void bars.offsetWidth;
-          bars.style.width = (bars.getAttribute("data-w") || "100") + "%";
-        }
-      }
+      window.__digitalayaAnimateUpiBar();
     }
   }
   if (reduceMotion) {
@@ -1776,22 +1799,7 @@ window.addEventListener("digitalaya-device-continued", function(){
     }
     io.observe(el);
   });
-  const bars = document.querySelector("#upi-bars .bar--now i");
-  if (bars) {
-    const bio = new IntersectionObserver(ents => {
-      ents.forEach(e => {
-        if (!e.isIntersecting) return;
-        if (typeof window.__digitalayaAnimateUpiBar === "function") window.__digitalayaAnimateUpiBar(true);
-        else {
-          bars.style.width = "0";
-          void bars.offsetWidth;
-          bars.style.width = (bars.getAttribute("data-w") || "100") + "%";
-        }
-        bio.disconnect();
-      });
-    }, {threshold:0.45, rootMargin:"-6% 0px -12% 0px"});
-    bio.observe(bars);
-  }
+  /* UPI bar growth is owned by COUNTERS.watchUpiBar — do not pre-grow here */
   function wakeReveals(reason){
     const continued = document.documentElement.classList.contains("device-continued");
     forceNearViewport(!!continued && /continued|late|later/.test(String(reason||"")));

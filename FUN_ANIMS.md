@@ -18,7 +18,9 @@ Source of truth (kept identical):
 | `.reveal--fade` | Opacity only (sticky UPI stage, hero art) |
 | `.reveal-stagger` | Children enter with uneven delays (~95–140ms organic) |
 
-Grid children also get alternating transforms via `:nth-child(6n+…)` so a bento/pillar/services row does not feel samey.
+Grid children also get alternating transforms via `:nth-child(6n+…)` so a bento/services row does not feel samey.
+
+**Nine Pillars:** each `<article class="pillar">` has its own `.reveal` + alternating variant (`--pop` / `--rise` / `--left` / `--right` / `--tilt`). Parent `.pillars` is **not** `reveal-stagger`, so each card is observed and animates as it enters. On phones/narrow: full pop/slide transforms. On sticky wide (`min-width:800px`): **opacity + `cardEnterFlash` only** (`transform:none`) so `position:sticky` stacking still works.
 
 Cards / spots / stats / milestones / metrics / flips / svc tiles get a soft saffron→green **border flash** (`cardEnterFlash`) when `.is-in` lands.
 
@@ -31,7 +33,7 @@ Tab panels use `panelPop`; metrics inside an active panel use staggered `metricP
 3. IO: thresholds `[0, 0.12, 0.22, 0.35]`, `rootMargin: 0px 0px -8% 0px`.
 4. Re-observe after unlock for anything still pending.
 5. Safety: after ~2.4s, only **near-viewport** leftover hidden nodes get `.is-in` + `.reveal-force` (below-fold scroll reveals stay intact).
-6. Sticky pillars / UPI stage: **opacity-only** (transform would break `position:sticky`).
+6. Sticky UPI stage: **opacity-only** (transform would break `position:sticky`). Pillars: full transforms on narrow; opacity+flash only on sticky wide.
 
 ## Reduced motion
 
@@ -47,6 +49,7 @@ Counters (~4–7s calm), UPI bar JS grow, sticky UPI demo, marquee fixes, device
 
 ## Risks
 
-- More simultaneous transitions on low-end Androids → mitigated with opacity-only sticky bits, no rotate on coarse pointers, will-change cleared after `.is-in`, 2.4s force safety.
+- More simultaneous transitions on low-end Androids → mitigated with opacity-only sticky wide pillars / UPI, no rotate on coarse pointers, will-change cleared after `.is-in`, 2.4s force safety.
+- Safari stackscale fallback only writes inline opacity/transform on pillars that already have `.is-in` (never fights entrance reveals).
 - Nested `.reveal-stagger` (hero content → hero stats) relies on recursive `markIn`.
 - Horizontal `.services` stagger reveals off-screen cards when the track enters — intentional.

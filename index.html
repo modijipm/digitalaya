@@ -434,34 +434,10 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 .js .pillars.pillars-cascade > .pillar:nth-child(even).is-in{animation-name:pillarInRight,pillarEnterFlash}
 .js .pillars.pillars-cascade > .pillar.is-in::before{animation:pillarBarIn .7s cubic-bezier(.22,1,.36,1) .12s both}
 .js .pillars.pillars-cascade > .pillar.is-in .pillar__n{animation:pillarNumIn .55s cubic-bezier(.22,1.2,.36,1) .18s both}
-/* Uneven cascade delays (~130–150ms) — obvious even when whole list is in view */
-.js .pillars.pillars-cascade > .pillar:nth-child(1).is-in{animation-delay:0ms,0ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(2).is-in{animation-delay:130ms,130ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(3).is-in{animation-delay:250ms,250ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(4).is-in{animation-delay:390ms,390ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(5).is-in{animation-delay:520ms,520ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(6).is-in{animation-delay:660ms,660ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(7).is-in{animation-delay:790ms,790ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(8).is-in{animation-delay:930ms,930ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(9).is-in{animation-delay:1060ms,1060ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(1).is-in::before{animation-delay:.12s}
-.js .pillars.pillars-cascade > .pillar:nth-child(2).is-in::before{animation-delay:calc(130ms + .12s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(3).is-in::before{animation-delay:calc(250ms + .12s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(4).is-in::before{animation-delay:calc(390ms + .12s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(5).is-in::before{animation-delay:calc(520ms + .12s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(6).is-in::before{animation-delay:calc(660ms + .12s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(7).is-in::before{animation-delay:calc(790ms + .12s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(8).is-in::before{animation-delay:calc(930ms + .12s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(9).is-in::before{animation-delay:calc(1060ms + .12s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(1).is-in .pillar__n{animation-delay:.18s}
-.js .pillars.pillars-cascade > .pillar:nth-child(2).is-in .pillar__n{animation-delay:calc(130ms + .18s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(3).is-in .pillar__n{animation-delay:calc(250ms + .18s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(4).is-in .pillar__n{animation-delay:calc(390ms + .18s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(5).is-in .pillar__n{animation-delay:calc(520ms + .18s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(6).is-in .pillar__n{animation-delay:calc(660ms + .18s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(7).is-in .pillar__n{animation-delay:calc(790ms + .18s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(8).is-in .pillar__n{animation-delay:calc(930ms + .18s)}
-.js .pillars.pillars-cascade > .pillar:nth-child(9).is-in .pillar__n{animation-delay:calc(1060ms + .18s)}
+/* Per-card is-in: no long nth-child delays (those fired off-screen when parent peeked). Tiny optional batch delay via JS. */
+.js .pillars.pillars-cascade > .pillar.is-in{animation-delay:0ms,0ms}
+.js .pillars.pillars-cascade > .pillar.is-in::before{animation-delay:.12s}
+.js .pillars.pillars-cascade > .pillar.is-in .pillar__n{animation-delay:.18s}
 /* Phones/coarse: skip lateral slide; keep spring scale+Y */
 @media(hover:none),(pointer:coarse),(max-width:900px){
   .js .pillars.pillars-cascade > .pillar:nth-child(odd).is-in,
@@ -1857,30 +1833,33 @@ window.addEventListener("digitalaya-device-continued", function(){
 (function REVEALS(){
   /* Uneven organic delays (ms) — calm, not frantic */
   const STAGGER = [0, 95, 175, 270, 360, 455, 545, 640, 730, 820, 910, 1000];
-  /* Pillars cascade: ~130–150ms so the wave is obvious when all 9 are in view */
-  const PILLAR_STAGGER = [0, 130, 250, 390, 520, 660, 790, 930, 1060];
+  /* Tiny same-frame batch delay for pillars that cross mid-band together */
+  const PILLAR_BATCH = [0, 70, 140, 210, 280, 350, 420, 490, 560];
   function delayFor(i){
     if (i < STAGGER.length) return STAGGER[i];
     return STAGGER[STAGGER.length - 1] + (i - STAGGER.length + 1) * 95;
   }
-  function pillarDelayFor(i){
-    if (i < PILLAR_STAGGER.length) return PILLAR_STAGGER[i];
-    return PILLAR_STAGGER[PILLAR_STAGGER.length - 1] + (i - PILLAR_STAGGER.length + 1) * 140;
+  function isPillarCard(el){
+    return !!(el && el.classList && el.classList.contains("pillar") && el.closest(".pillars-cascade"));
+  }
+  function isPillarsParent(el){
+    return !!(el && el.classList && el.classList.contains("pillars-cascade"));
+  }
+  function pillarClearlyVisible(r, vh){
+    if (!r || (!r.width && !r.height)) return false;
+    /* Mid-band: card must sit clearly on screen — not when section header barely peeks */
+    return r.top < vh * 0.82 && r.bottom > vh * 0.18;
   }
   function markIn(el, useStagger){
     if (!el) return;
-    if (el.classList.contains("reveal-stagger") || el.classList.contains("pillars-cascade")) {
-      const cascade = el.classList.contains("pillars-cascade");
-      /* Cascade: mark all children in one tick — CSS animation-delay creates the wave */
-      if (cascade) {
-        [...el.children].forEach(c => c.classList.add("is-in"));
-        return;
-      }
+    /* Never bulk-unlock all nine pillars from the tall parent */
+    if (isPillarsParent(el)) return;
+    if (el.classList.contains("reveal-stagger")) {
       [...el.children].forEach((c,i) => {
         if (c.classList.contains("timeline__fill")) { c.classList.add("is-in"); return; }
+        if (isPillarCard(c)) return; /* pillars observed individually */
         const ms = useStagger ? delayFor(i) : 0;
         setTimeout(() => c.classList.add("is-in"), ms);
-        /* Nested stagger grids (e.g. hero stats inside hero content) */
         if (c.classList.contains("reveal-stagger")) {
           setTimeout(() => markIn(c, useStagger), ms);
         }
@@ -1889,9 +1868,21 @@ window.addEventListener("digitalaya-device-continued", function(){
       el.classList.add("is-in");
     }
   }
+  let pillarBatchIndex = 0;
+  let pillarBatchTimer = 0;
+  function markPillarIn(el){
+    if (!el || el.classList.contains("is-in")) return;
+    const i = pillarBatchIndex++;
+    clearTimeout(pillarBatchTimer);
+    pillarBatchTimer = setTimeout(() => { pillarBatchIndex = 0; }, 80);
+    const ms = PILLAR_BATCH[Math.min(i, PILLAR_BATCH.length - 1)] || 0;
+    if (ms) setTimeout(() => el.classList.add("is-in"), ms);
+    else el.classList.add("is-in");
+  }
   function forceNearViewport(all){
     const vh = innerHeight || 800;
     document.querySelectorAll(".reveal,.reveal-stagger").forEach(el => {
+      if (isPillarsParent(el)) return; /* never parent-cascade pillars */
       if (el.closest(".hero")) {
         markIn(el, true);
         return;
@@ -1904,9 +1895,15 @@ window.addEventListener("digitalaya-device-continued", function(){
     });
     document.querySelectorAll(".reveal-stagger > *").forEach(c => {
       if (c.classList.contains("timeline__fill")) return;
+      if (isPillarCard(c)) return; /* handled below with stricter gate */
       const r = c.getBoundingClientRect();
       if (!r.width && !r.height) return;
       if (all || (r.top < vh * 1.2 && r.bottom > -vh * 0.15)) c.classList.add("is-in");
+    });
+    document.querySelectorAll(".pillars-cascade > .pillar").forEach(c => {
+      if (c.classList.contains("is-in")) return;
+      const r = c.getBoundingClientRect();
+      if (all || pillarClearlyVisible(r, vh)) markPillarIn(c);
     });
     if (typeof window.__digitalayaAnimateUpiBar === "function") {
       window.__digitalayaAnimateUpiBar();
@@ -1917,6 +1914,14 @@ window.addEventListener("digitalaya-device-continued", function(){
     const vh = innerHeight || 800;
     document.querySelectorAll(".reveal:not(.is-in),.reveal-stagger > *:not(.is-in)").forEach(el => {
       if (el.classList.contains("timeline__fill")) { el.classList.add("is-in"); return; }
+      if (isPillarCard(el)) {
+        const r = el.getBoundingClientRect();
+        if (pillarClearlyVisible(r, vh)) {
+          el.classList.add("is-in");
+          el.classList.add("reveal-force");
+        }
+        return;
+      }
       const r = el.getBoundingClientRect();
       if (!r.width && !r.height) return;
       if (r.top < vh * 1.3 && r.bottom > -vh * 0.2) {
@@ -1939,28 +1944,41 @@ window.addEventListener("digitalaya-device-continued", function(){
       io.unobserve(el);
     });
   }, {threshold:[0, 0.12, 0.22, 0.35], rootMargin:"0px 0px -8% 0px"});
+  /* Pillars: stricter mid-band gate — each card alone, no threshold 0 */
+  const pillarIo = new IntersectionObserver(entries => {
+    entries.forEach(en => {
+      if (!en.isIntersecting) return;
+      /* Require a solid share of the card in the mid band */
+      if (en.intersectionRatio < 0.35) return;
+      const el = en.target;
+      markPillarIn(el);
+      pillarIo.unobserve(el);
+    });
+  }, {threshold:[0.35, 0.5, 0.65], rootMargin:"-10% 0px -22% 0px"});
   document.querySelectorAll(".reveal,.reveal-stagger").forEach(el => {
-    /* Nested .reveal inside a stagger parent: parent drives children; still observe standalone */
+    if (isPillarsParent(el)) return; /* observe children, not tall parent */
     if (el.classList.contains("reveal") && el.parentElement && el.parentElement.classList.contains("reveal-stagger")) {
-      /* parent observer will mark this child; skip separate observe to avoid double */
       return;
     }
     io.observe(el);
   });
+  document.querySelectorAll(".pillars-cascade > .pillar").forEach(el => pillarIo.observe(el));
   function wakeReveals(reason){
     const continued = document.documentElement.classList.contains("device-continued");
-    /* Always stagger near-viewport items so Continue still feels animated */
     forceNearViewport(false);
     document.querySelectorAll(".reveal,.reveal-stagger").forEach(el => {
+      if (isPillarsParent(el)) return;
       if (el.classList.contains("reveal") && el.parentElement && el.parentElement.classList.contains("reveal-stagger")) return;
       if (el.classList.contains("reveal-stagger")) {
-        const pending = [...el.children].some(c => !c.classList.contains("is-in") && !c.classList.contains("timeline__fill"));
+        const pending = [...el.children].some(c => !c.classList.contains("is-in") && !c.classList.contains("timeline__fill") && !isPillarCard(c));
         if (pending) { try { io.unobserve(el); io.observe(el); } catch(e){} }
       } else if (!el.classList.contains("is-in")) {
         try { io.unobserve(el); io.observe(el); } catch(e){}
       }
     });
-    /* Safety: if Android never delivers IO, snap remaining after calm entrance window */
+    document.querySelectorAll(".pillars-cascade > .pillar:not(.is-in)").forEach(el => {
+      try { pillarIo.unobserve(el); pillarIo.observe(el); } catch(e){}
+    });
     if (continued || /continued|late|later|wake/.test(String(reason||""))) {
       clearTimeout(window.__digitalayaRevealSafety);
       window.__digitalayaRevealSafety = setTimeout(forceStuck, 2400);

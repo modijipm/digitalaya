@@ -364,10 +364,21 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 .stack-sticky{position:-webkit-sticky;position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));height:calc(100dvh - var(--nav-h));z-index:30;display:flex;align-items:center;padding:.75rem 0 1rem;-webkit-transform:translateZ(0);transform:translateZ(0)}
 .stack-stage{width:min(120rem,100% - 1.5rem);max-width:72rem;margin:0 auto;height:min(90vh,calc(100dvh - var(--nav-h) - 1.5rem));display:grid;grid-template-columns:.4fr 1fr;gap:1.15rem;padding:1.15rem;border-radius:1.75rem;background:var(--bg-elev);border:1px solid var(--border);box-shadow:var(--shadow);position:relative;overflow:hidden}
 .stack-stage::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);z-index:5;pointer-events:none}
-.stack-stage__left{border-radius:var(--radius);background:color-mix(in srgb,var(--bg-card) 88%,var(--teal) 12%);border:1px solid var(--border);padding:1.1rem 1.15rem 1.25rem;display:flex;flex-direction:column;min-height:0;position:relative;overflow:hidden}
+.stack-stage__left{border-radius:var(--radius);background:color-mix(in srgb,var(--bg-card) 88%,var(--teal) 12%);border:1px solid var(--border);padding:1.1rem 1.15rem 1.25rem;display:flex;flex-direction:column;min-height:0;position:relative;overflow-x:clip;overflow-y:auto}
 .stack-stage__left .eyebrow{margin-bottom:.35rem}
 .stack-stage__left h2{font-size:clamp(1.35rem,2.6vw,1.85rem);letter-spacing:-.02em;line-height:1.15;margin-bottom:.65rem}
 .stack-stage__left .stack-tabs-row{margin-bottom:.75rem}
+/* Arrows on top row; 2×2 tab grid below — prevents overlap in narrow sticky column */
+.stack-stage .stack-tabs-row{display:grid;grid-template-columns:44px 1fr 44px;grid-template-rows:auto auto;gap:.4rem .5rem;align-items:center;width:100%}
+.stack-stage .stack-tabs-row #stack-prev{grid-area:1/1}
+.stack-stage .stack-tabs-row #stack-next{grid-area:1/3;justify-self:end}
+.stack-stage .stack-tabs-row .tabs{grid-area:2/1/3/4;display:grid;grid-template-columns:1fr 1fr;gap:.4rem;margin:0;width:100%;min-width:0;overflow:visible;flex:none;flex-wrap:unset}
+.stack-stage .stack-tabs-row .tabs [role="tab"]{width:100%;min-width:0;white-space:normal;font-size:.78rem;padding:.5rem .55rem;line-height:1.2;justify-content:center;box-sizing:border-box;z-index:1}
+.stack-stage .stack-tabs-row .tabs [role="tab"][aria-selected="true"]{z-index:2}
+.stack-stage__left .stack-tabs-row{overflow:visible}
+@media(max-width:700px){
+  .stack-stage .stack-tabs-row .tabs [role="tab"]{font-size:.72rem;padding:.45rem .4rem;min-height:40px}
+}
 .stack-layers{position:relative;flex:1 1 auto;min-height:8rem}
 .stack-layer{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:.55rem;opacity:0;transform:translateY(22px);transition:opacity .55s var(--ease),transform .55s var(--ease);pointer-events:none}
 .stack-layer.is-active{opacity:1;transform:translateY(0);pointer-events:auto}
@@ -1138,7 +1149,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
                 <rect x="274" y="40" width="70" height="48" rx="12" fill="var(--bg-elev)" stroke="var(--india-green)" stroke-width="2"/>
                 <text x="309" y="69" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">Payee</text>
                 <path d="M86 64 C140 10,220 118,274 64" fill="none" stroke="var(--saffron)" stroke-width="2.5" stroke-dasharray="5 5"/>
-                <circle cx="180" cy="55" r="10" fill="var(--orange-bright)"/>
+                <circle cx="180" cy="64" r="10" fill="var(--orange-bright)"/>
               </svg>
             </div>
             <div class="metrics">

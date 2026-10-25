@@ -286,10 +286,12 @@ body.menu-open{overflow:hidden}
 body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hidden}
 .bharat{border-bottom:1px solid var(--border);background:var(--bg-elev);overflow:hidden}
 .bharat__track{display:flex;gap:1.25rem;padding:.65rem 0;width:max-content;animation:marquee 45s linear infinite;font-family:var(--font-indic);font-size:.9rem;font-weight:600;color:var(--muted)}
+@media (hover:hover) and (pointer:fine){
 .bharat:hover .bharat__track,.bharat:focus-within .bharat__track{animation-play-state:paused}
+}
 .bharat__track span{white-space:nowrap}
 .bharat__track span::after{content:"·";margin-left:1.25rem;opacity:.5}
-@keyframes marquee{to{transform:translateX(-50%)}}
+@keyframes marquee{to{transform:translate3d(-50%,0,0)}}
 
 .hero{position:relative;padding:clamp(2rem,4vw,3.25rem) 0 clamp(2.5rem,5vw,4rem);min-height:min(78dvh,720px);display:flex;align-items:center;overflow:hidden}
 .hero__grid{display:grid;gap:2rem;align-items:center}
@@ -346,8 +348,18 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 .pillar__n{font-size:.85rem;font-weight:800;color:var(--india-green);letter-spacing:.08em}
 .upi-story{display:grid;gap:1.5rem}
 @media(min-width:900px){.upi-story{grid-template-columns:1fr 1fr;align-items:start}}
-.upi-stage{position:sticky;top:calc(var(--nav-h) + 1rem);background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;min-height:200px}
-@media(max-width:899px){.upi-stage{position:relative;top:auto;min-height:0;max-height:30vh;padding:.75rem}.upi-stage svg{height:min(28vh,160px);width:100%}}
+.upi-stage{position:sticky;top:calc(var(--nav-h) + 1rem);z-index:40;background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;min-height:200px;-webkit-transform:translateZ(0);transform:translateZ(0)}
+/* Phones: keep Payer→Payee demo sticky under the nav while step cards scroll */
+@media(max-width:899px){
+  #upi-flow,.upi-story,.upi-story .wrap{overflow:visible}
+  .upi-story{display:flex;flex-direction:column;gap:1rem;align-items:stretch;overflow:visible}
+  .upi-stage.card,.upi-stage{order:0;position:-webkit-sticky;position:sticky;top:calc(var(--nav-h) + .5rem);z-index:45;min-height:0;max-height:none;padding:.65rem .75rem .55rem;margin:0 0 .15rem;box-shadow:var(--shadow);overflow:visible;background:var(--bg-card);background:color-mix(in srgb,var(--bg-card) 94%,transparent);backdrop-filter:saturate(1.1) blur(8px);-webkit-backdrop-filter:saturate(1.1) blur(8px);-webkit-transform:translateZ(0);transform:translateZ(0)}
+  .upi-stage svg{height:min(24vh,140px);width:100%;display:block}
+  .upi-stage #upi-caption{margin:.35rem 0 0;font-size:.92rem;line-height:1.35}
+  .upi-steps{order:1;display:grid;gap:.75rem;padding-bottom:1.25rem;overflow:visible}
+  /* Extra scroll runway so steps 2–4 activate while stage stays stuck under the nav */
+  .upi-steps .upi-step:last-child{margin-bottom:min(42vh,260px)}
+}
 .upi-steps{display:grid;gap:.75rem}
 .upi-step{padding:.85rem .95rem;border-radius:14px;border:1px solid var(--border);background:var(--bg-card);opacity:.55;transition:opacity .3s,border-color .3s;font-size:1.02rem}
 .upi-step.is-active{opacity:1;border-color:var(--india-green);box-shadow:0 0 0 1px rgba(255,153,51,.35);box-shadow:0 0 0 1px color-mix(in srgb,var(--saffron) 35%,transparent)}
@@ -539,6 +551,7 @@ body{animation:bodyFadeIn .45s var(--ease) both}
   html,body{overflow-x:hidden}
 }
 @media (hover:none), (pointer:coarse), (max-width:900px){
+  /* keep marquee on phones — do not kill .bharat__track animation */
   .mesh__blob{filter:blur(28px);will-change:auto;opacity:.5}
   .mesh__blob--2{opacity:.42}
   #upi-packet{filter:none}
@@ -555,7 +568,7 @@ html.device-continued.android-wake .reveal-stagger>*{opacity:1;transform:none}
   .flip,.flip__inner{min-height:190px}
   .stack-tabs-row .tabs{-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .stack-tabs-row .tabs::-webkit-scrollbar{display:none}
-  .upi-stage{transform:translateZ(0)}
+  .upi-stage{position:-webkit-sticky;position:sticky;top:calc(var(--nav-h) + .5rem);z-index:45;-webkit-transform:translateZ(0);transform:translateZ(0)}
   .nav{transform:translateZ(0)}
   .mobile-menu{overscroll-behavior:contain}
   .hero{min-height:min(78vh,720px);min-height:min(78dvh,720px)}
@@ -872,27 +885,27 @@ html.device-blocked .motion-gate{display:none!important}
         <h3>Unified Payments Interface</h3>
         <p>Real-time payments rails launched 25 Aug 2016. Figures from NPCI reporting.</p>
         <div class="metrics">
-          <div class="metric"><b data-count="24162" data-locale="en-IN">24,162</b><span>Cr transactions, FY2025-26</span></div>
-          <div class="metric"><b>~₹314</b><span>Lakh crore value, FY2025-26</span></div>
-          <div class="metric"><b data-count="703">703</b><span>Banks on UPI (from 44)</span></div>
-          <div class="metric"><b>~13,000×</b><span>Txn growth vs FY2016-17 (1.78 Cr)</span></div>
+          <div class="metric"><b data-count="24162" data-locale="en-IN">0</b><span>Cr transactions, FY2025-26</span></div>
+          <div class="metric"><b data-count="314" data-prefix="~₹">0</b><span>Lakh crore value, FY2025-26</span></div>
+          <div class="metric"><b data-count="703">0</b><span>Banks on UPI (from 44)</span></div>
+          <div class="metric"><b data-count="13000" data-prefix="~" data-suffix="×" data-locale="en-IN">0</b><span>Txn growth vs FY2016-17 (1.78 Cr)</span></div>
         </div>
       </div>
       <div class="panel card" role="tabpanel" id="panel-dl" aria-labelledby="tab-dl" hidden>
         <h3>DigiLocker</h3>
         <p>Digital document wallet linked to trusted issuers. As of Mar 2026.</p>
         <div class="metrics">
-          <div class="metric"><b>&gt;70.69 Cr</b><span>Registered users (Mar 2026)</span></div>
-          <div class="metric"><b>&gt;850 Cr</b><span>Documents issued (Mar 2026)</span></div>
-          <div class="metric"><b>&gt;144 Cr</b><span>Aadhaar registrations (Mar 2026)</span></div>
+          <div class="metric"><b data-count="70.69" data-decimals="2" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Registered users (Mar 2026)</span></div>
+          <div class="metric"><b data-count="850" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Documents issued (Mar 2026)</span></div>
+          <div class="metric"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations (Mar 2026)</span></div>
         </div>
       </div>
       <div class="panel card" role="tabpanel" id="panel-ondc" aria-labelledby="tab-ondc" hidden>
         <h3>Open Network for Digital Commerce</h3>
         <p>Open e-commerce protocol. Mid-2026 figures are reported and approximate.</p>
         <div class="metrics">
-          <div class="metric"><b>~5 lakh+</b><span>Sellers (reported, approx.)</span></div>
-          <div class="metric"><b>~1,000</b><span>Cities (reported, approx.)</span></div>
+          <div class="metric"><b data-count="5" data-prefix="~" data-suffix=" lakh+">0</b><span>Sellers (reported, approx.)</span></div>
+          <div class="metric"><b data-count="1000" data-prefix="~" data-locale="en-IN">0</b><span>Cities (reported, approx.)</span></div>
           <div class="metric"><b>Open</b><span>Network: not a single app store</span></div>
         </div>
       </div>
@@ -900,9 +913,9 @@ html.device-blocked .motion-gate{display:none!important}
         <h3>Ayushman Bharat Digital Mission</h3>
         <p>Health IDs and linked records. As of Jul 2026 (Govt of India).</p>
         <div class="metrics">
-          <div class="metric"><b>&gt;93 Cr</b><span>ABHA accounts (Jul 2026)</span></div>
-          <div class="metric"><b>&gt;104 Cr</b><span>Health records linked (Jul 2026)</span></div>
-          <div class="metric"><b>&gt;48 Cr</b><span>eSanjeevani teleconsultations (Jun 2026)</span></div>
+          <div class="metric"><b data-count="93" data-prefix="&gt;" data-suffix=" Cr">0</b><span>ABHA accounts (Jul 2026)</span></div>
+          <div class="metric"><b data-count="104" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Health records linked (Jul 2026)</span></div>
+          <div class="metric"><b data-count="48" data-prefix="&gt;" data-suffix=" Cr">0</b><span>eSanjeevani teleconsultations (Jun 2026)</span></div>
         </div>
       </div>
     </div>
@@ -930,14 +943,14 @@ html.device-blocked .motion-gate{display:none!important}
     <h2>Digital India in figures</h2>
     <p class="lead">Bento of verified public figures. Each tile cites an as-of date.</p>
     <div class="bento reveal-stagger">
-      <div class="card spot tilt"><b>&gt;144 Cr</b><span>Aadhaar registrations</span><small>as of Mar 2026 · UIDAI</small></div>
-      <div class="card spot tilt"><b>59.09 Cr</b><span>Jan Dhan accounts</span><small>as of Aug 2026 · from 14.72 Cr in Mar 2015</small></div>
-      <div class="card spot tilt"><b>~1.11 Bn</b><span>Internet subscribers</span><small>as of Jun 2026 · TRAI</small></div>
-      <div class="card spot tilt"><b>&gt;2.15 Lakh</b><span>Gram panchayats on BharatNet</span><small>~97% · Jan 2026</small></div>
-      <div class="card spot tilt"><b>&gt;6.5 Lakh</b><span>Common Service Centres</span><small>public access points</small></div>
-      <div class="card spot tilt"><b>&gt;₹18.4 Lakh Cr</b><span>GeM cumulative transactions</span><small>as of Jun 2026 · &gt;11 lakh MSMEs</small></div>
-      <div class="card spot tilt"><b>&gt;9.20 Cr</b><span>AgriStack farmer ID records</span><small>as of Mar 2026</small></div>
-      <div class="card spot tilt"><b>~₹12 Lakh Cr</b><span>Electronics output</span><small>Mar 2026 · from ₹1.9 Lakh Cr in FY2014-15</small></div>
+      <div class="card spot tilt"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations</span><small>as of Mar 2026 · UIDAI</small></div>
+      <div class="card spot tilt"><b data-count="59.09" data-decimals="2" data-suffix=" Cr">0</b><span>Jan Dhan accounts</span><small>as of Aug 2026 · from 14.72 Cr in Mar 2015</small></div>
+      <div class="card spot tilt"><b data-count="1.11" data-decimals="2" data-prefix="~" data-suffix=" Bn">0</b><span>Internet subscribers</span><small>as of Jun 2026 · TRAI</small></div>
+      <div class="card spot tilt"><b data-count="2.15" data-decimals="2" data-prefix="&gt;" data-suffix=" Lakh">0</b><span>Gram panchayats on BharatNet</span><small>~97% · Jan 2026</small></div>
+      <div class="card spot tilt"><b data-count="6.5" data-decimals="1" data-prefix="&gt;" data-suffix=" Lakh">0</b><span>Common Service Centres</span><small>public access points</small></div>
+      <div class="card spot tilt"><b data-count="18.4" data-decimals="1" data-prefix="&gt;₹" data-suffix=" Lakh Cr">0</b><span>GeM cumulative transactions</span><small>as of Jun 2026 · &gt;11 lakh MSMEs</small></div>
+      <div class="card spot tilt"><b data-count="9.20" data-decimals="2" data-prefix="&gt;" data-suffix=" Cr">0</b><span>AgriStack farmer ID records</span><small>as of Mar 2026</small></div>
+      <div class="card spot tilt"><b data-count="12" data-prefix="~₹" data-suffix=" Lakh Cr">0</b><span>Electronics output</span><small>Mar 2026 · from ₹1.9 Lakh Cr in FY2014-15</small></div>
     </div>
   </div>
 </section>
@@ -1455,8 +1468,11 @@ window.addEventListener("digitalaya-device-continued", function(){
 
     let upiIdx = lastUpiIdx;
     if (upiSteps.length) {
-      /* Equal bands through the steps list so 1-4 advance evenly */
-      const probe = y + vh * 0.4;
+      /* Equal bands through the steps list so 1-4 advance evenly.
+         On narrow screens the sticky stage eats the top ~nav+stage; probe lower. */
+      const narrow = matchMedia("(max-width:899px)").matches;
+      const probeFrac = narrow ? 0.62 : 0.4;
+      const probe = y + vh * probeFrac;
       const t = (probe - upiListTop) / upiListH;
       upiIdx = Math.min(upiSteps.length - 1, Math.max(0, Math.floor(t * upiSteps.length)));
     }
@@ -1560,50 +1576,126 @@ window.addEventListener("digitalaya-device-continued", function(){
 
 /* ===== COUNTERS ===== */
 (function COUNTERS(){
-  /* slight overshoot for a snappy count-up */
   const easeOutBack = t => {
     const c1 = 1.70158, c3 = c1 + 1;
     return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
   };
+  function formatCount(el, value, final){
+    const prefix = el.dataset.prefix || "";
+    const suffix = el.dataset.suffix || "";
+    const loc = el.dataset.locale || undefined;
+    const decimals = el.dataset.decimals != null && el.dataset.decimals !== ""
+      ? Math.max(0, parseInt(el.dataset.decimals, 10) || 0)
+      : null;
+    let num;
+    if (decimals != null) {
+      const fixed = (final ? value : value).toFixed(decimals);
+      num = loc ? Number(fixed).toLocaleString(loc, {minimumFractionDigits: decimals, maximumFractionDigits: decimals}) : fixed;
+    } else {
+      const rounded = Math.round(value);
+      num = loc ? rounded.toLocaleString(loc) : String(rounded);
+    }
+    el.textContent = prefix + num + suffix;
+  }
+  function runCount(el){
+    if (!el || el.dataset.counted === "1") return;
+    const target = parseFloat(el.dataset.count);
+    if (Number.isNaN(target)) return;
+    el.dataset.counted = "1";
+    /* start from zero visually */
+    el.textContent = "0";
+    if (reduceMotion) {
+      formatCount(el, target, true);
+      return;
+    }
+    const t0 = performance.now();
+    const dur = 1400;
+    function tick(now){
+      const t = Math.min(1, (now - t0) / dur);
+      const eased = Math.min(1.04, easeOutBack(t));
+      const shown = t >= 1 ? target : Math.max(0, Math.min(target * 1.02, target * eased));
+      formatCount(el, t >= 1 ? target : shown, t >= 1);
+      if (t < 1) requestAnimationFrame(tick);
+      else formatCount(el, target, true);
+    }
+    requestAnimationFrame(tick);
+  }
+  function isNearViewport(el){
+    const r = el.getBoundingClientRect();
+    const vh = innerHeight || 800;
+    if (!r.width && !r.height) return false;
+    return r.top < vh * 1.2 && r.bottom > -40;
+  }
+  function forceVisibleCounts(){
+    countEls.forEach(el => {
+      if (el.dataset.counted === "1") return;
+      if (isNearViewport(el)) runCount(el);
+    });
+  }
+  function animateUpiBar(force){
+    const bar = document.querySelector("#upi-bars .bar--now i");
+    if (!bar) return;
+    if (bar.dataset.grown === "1") return;
+    const r = bar.getBoundingClientRect();
+    const vh = innerHeight || 800;
+    const hasBox = !!(r.width || r.height);
+    if (!force && hasBox && !(r.top < vh * 1.15 && r.bottom > -20)) return;
+    /* When gated (zero box) wait unless force after continue */
+    if (!force && !hasBox) return;
+    const w = bar.getAttribute("data-w") || "100";
+    bar.dataset.grown = "1";
+    bar.style.width = "0";
+    void bar.offsetWidth; /* reflow */
+    requestAnimationFrame(function(){
+      bar.style.width = w + "%";
+    });
+  }
+  window.__digitalayaAnimateUpiBar = animateUpiBar;
+
   const io = new IntersectionObserver(entries => {
     entries.forEach(en => {
       if (!en.isIntersecting) return;
-      const el = en.target;
-      if (el.dataset.counted === "1") return;
-      el.dataset.counted = "1";
-      io.unobserve(el);
-      const target = parseFloat(el.dataset.count);
-      if (Number.isNaN(target)) return;
-      const suffix = el.dataset.suffix || "";
-      const loc = el.dataset.locale || undefined;
-      if (reduceMotion) {
-        el.textContent = (loc ? Math.round(target).toLocaleString(loc) : target) + suffix;
-        return;
-      }
-      const t0 = performance.now();
-      function tick(now){
-        const t = Math.min(1, (now - t0) / 1400);
-        const v = target * Math.min(1.04, easeOutBack(t));
-        const shown = t >= 1 ? target : Math.max(0, Math.min(target * 1.02, v));
-        el.textContent = (loc ? Math.round(shown).toLocaleString(loc) : Math.round(shown)) + suffix;
-        if (t < 1) requestAnimationFrame(tick);
-      }
-      requestAnimationFrame(tick);
+      runCount(en.target);
+      try { io.unobserve(en.target); } catch(e){}
     });
-  }, {threshold:0.15, rootMargin:"0px 0px 20% 0px"});
+  }, {threshold:0.12, rootMargin:"0px 0px 25% 0px"});
+
   const countEls = [...document.querySelectorAll("[data-count]")];
-  countEls.forEach(el => io.observe(el));
-  if (window.__digitalayaRegisterWake) window.__digitalayaRegisterWake(function(){
+  countEls.forEach(el => {
+    /* ensure start at 0 */
+    if (el.dataset.counted !== "1") el.textContent = "0";
+    io.observe(el);
+  });
+
+  function wakeCounts(reason){
+    const continued = document.documentElement.classList.contains("device-continued");
+    forceVisibleCounts();
+    if (continued || /continued|late|later|raf/.test(String(reason||""))) {
+      animateUpiBar(!!continued);
+    } else {
+      animateUpiBar(false);
+    }
     countEls.forEach(el => {
       if (el.dataset.counted === "1") return;
       try { io.unobserve(el); io.observe(el); } catch(e){}
-      const r = el.getBoundingClientRect();
-      if (r.width && r.height && r.top < innerHeight * 1.15 && r.bottom > -20) {
-        /* Force a synthetic intersect by temporarily scrolling check via getBoundingClientRect path:
-           re-call observe; Chrome Android delivers after display unlock. */
-      }
     });
+  }
+  window.__digitalayaCountersWake = wakeCounts;
+  if (window.__digitalayaRegisterWake) window.__digitalayaRegisterWake(wakeCounts);
+
+  [0, 100, 400, 1000].forEach(ms => {
+    setTimeout(function(){
+      if (document.documentElement.classList.contains("device-continued") ||
+          document.documentElement.classList.contains("device-allowed")) {
+        forceVisibleCounts();
+        animateUpiBar(document.documentElement.classList.contains("device-continued"));
+      }
+    }, ms);
   });
+  if (document.documentElement.classList.contains("device-continued")) {
+    forceVisibleCounts();
+    animateUpiBar(true);
+  }
 })();
 
 /* ===== REVEALS ===== */
@@ -1642,10 +1734,18 @@ window.addEventListener("digitalaya-device-continued", function(){
       if (!r.width && !r.height) return;
       if (all || (r.top < vh * 1.35 && r.bottom > -vh * 0.2)) c.classList.add("is-in");
     });
-    const bars = document.querySelector("#upi-bars .bar--now i");
-    if (bars) {
-      const br = bars.getBoundingClientRect();
-      if (all || (br.top < vh && br.bottom > 0)) bars.style.width = "100%";
+    if (typeof window.__digitalayaAnimateUpiBar === "function") {
+      window.__digitalayaAnimateUpiBar(!!all);
+    } else {
+      const bars = document.querySelector("#upi-bars .bar--now i");
+      if (bars) {
+        const br = bars.getBoundingClientRect();
+        if (all || (br.top < vh && br.bottom > 0)) {
+          bars.style.width = "0";
+          void bars.offsetWidth;
+          bars.style.width = (bars.getAttribute("data-w") || "100") + "%";
+        }
+      }
     }
   }
   if (reduceMotion) {
@@ -1674,8 +1774,17 @@ window.addEventListener("digitalaya-device-continued", function(){
   const bars = document.querySelector("#upi-bars .bar--now i");
   if (bars) {
     const bio = new IntersectionObserver(ents => {
-      ents.forEach(e => { if (e.isIntersecting) { bars.style.width = "100%"; bio.disconnect(); }});
-    }, {threshold:0.2});
+      ents.forEach(e => {
+        if (!e.isIntersecting) return;
+        if (typeof window.__digitalayaAnimateUpiBar === "function") window.__digitalayaAnimateUpiBar(true);
+        else {
+          bars.style.width = "0";
+          void bars.offsetWidth;
+          bars.style.width = (bars.getAttribute("data-w") || "100") + "%";
+        }
+        bio.disconnect();
+      });
+    }, {threshold:0.15, rootMargin:"0px 0px 20% 0px"});
     bio.observe(bars);
   }
   function wakeReveals(reason){
@@ -1725,6 +1834,12 @@ window.addEventListener("digitalaya-device-continued", function(){
       p.hidden = !on;
     });
     if (focusTab !== false) tabs[i].focus({preventScroll:true});
+    /* Newly shown panel metrics need a count-up pass (were display:none / zero-box) */
+    try {
+      if (typeof window.__digitalayaCountersWake === "function") {
+        setTimeout(function(){ window.__digitalayaCountersWake("tab"); }, 30);
+      }
+    } catch (eTab) {}
   }
 
   function move(delta){ activate(indexOfSelected() + delta, true); }
@@ -2195,7 +2310,13 @@ window.addEventListener("digitalaya-device-continued", function(){
     if (el.classList.contains("network") || el.classList.contains("bharat")) {
       el.style.animationPlayState = state;
       const track = el.querySelector(".bharat__track");
-      if (track) track.style.animationPlayState = state;
+      if (track) {
+        track.style.animationPlayState = state;
+        if (!paused) {
+          el.classList.remove("is-paused");
+          track.classList.remove("is-paused");
+        }
+      }
       return;
     }
     if (el.classList.contains("mesh") || el.classList.contains("hero")) {
@@ -2245,12 +2366,40 @@ window.addEventListener("digitalaya-device-continued", function(){
 
   addEventListener("load", refreshAll, {passive:true});
   addEventListener("pageshow", refreshAll, {passive:true});
+  function kickMarquee(restart){
+    const bharat = document.querySelector(".bharat");
+    const track = bharat && bharat.querySelector(".bharat__track");
+    if (!bharat || !track || reduceMotion) return;
+    if (!inView(bharat)) return;
+    bharat.classList.remove("is-paused");
+    track.classList.remove("is-paused");
+    track.style.animationPlayState = "running";
+    bharat.style.animationPlayState = "running";
+    if (restart) {
+      const prev = track.style.animation;
+      track.style.animation = "none";
+      void track.offsetWidth;
+      track.style.animation = "";
+      /* restore stylesheet animation */
+      track.style.animationPlayState = "running";
+    }
+  }
   if (window.__digitalayaRegisterWake) {
-    window.__digitalayaRegisterWake(function(){
+    window.__digitalayaRegisterWake(function(reason){
       refreshAll();
       targets.forEach(t => { try { io.unobserve(t); io.observe(t); } catch(e){} });
+      const continued = document.documentElement.classList.contains("device-continued");
+      const first = /continued/.test(String(reason||"")) && !/raf|late|later/.test(String(reason||""));
+      kickMarquee(!!(continued && first));
+      kickMarquee(false);
+      setTimeout(function(){ kickMarquee(false); refreshAll(); }, 80);
+      setTimeout(function(){ kickMarquee(!!first); }, 320);
     });
   }
+  addEventListener("scroll", function(){
+    const bharat = document.querySelector(".bharat");
+    if (bharat && inView(bharat) && !reduceMotion && !document.hidden) kickMarquee(false);
+  }, {passive:true});
   /* First paint: default running when in view; force refresh after layout */
   refreshAll();
   requestAnimationFrame(refreshAll);

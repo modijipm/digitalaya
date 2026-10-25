@@ -387,9 +387,9 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 .stack-progress{height:4px;border-radius:999px;background:color-mix(in srgb,var(--border) 80%,transparent);margin-top:.55rem;overflow:hidden;flex-shrink:0}
 .stack-progress>i{display:block;height:100%;width:0%;border-radius:inherit;background:linear-gradient(90deg,var(--saffron),var(--india-green));transition:width .2s linear}
 .stack-stage__right{border-radius:var(--radius);background:var(--bg-card);border:1px solid var(--border);position:relative;overflow:hidden;min-height:0;display:flex;flex-direction:column}
-.stack-visual{position:absolute;inset:0;padding:.85rem .95rem .95rem;display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:.55rem;opacity:0;transform:translateY(28px);transition:opacity .55s var(--ease),transform .55s var(--ease);pointer-events:none;overflow:hidden;min-height:0;box-sizing:border-box}
+.stack-visual{position:absolute;inset:0;padding:.85rem .95rem .95rem;display:flex;flex-direction:column;justify-content:center;align-items:stretch;gap:.8rem;opacity:0;transform:translateY(28px);transition:opacity .55s var(--ease),transform .55s var(--ease);pointer-events:none;overflow:hidden;min-height:0;box-sizing:border-box}
 .stack-visual.is-active{opacity:1;transform:translateY(0);pointer-events:auto}
-.stack-visual__art{width:100%;flex:0 1 auto;min-height:0;max-height:min(42%,220px);margin:0;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.stack-visual__art{width:100%;flex:0 1 auto;min-height:0;max-height:min(38%,200px);margin:0;padding-bottom:.35rem;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .stack-visual__art svg{width:100%;height:auto;max-height:100%;display:block;object-fit:contain}
 .stack-visual .metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.45rem;margin:0;flex:0 0 auto;position:relative;z-index:2;width:100%}
 .stack-visual .metrics .metric{min-width:0;padding:.55rem .65rem;background:var(--bg-elev);border:1px solid var(--border);border-radius:12px}
@@ -1172,7 +1172,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
           </div>
           <div class="stack-visual" data-stack-i="1" id="visual-dl">
             <div class="stack-visual__art">
-              <svg viewBox="0 0 360 140" role="img" aria-label="DigiLocker"><title>DigiLocker</title>
+              <svg viewBox="0 0 360 150" role="img" aria-label="DigiLocker"><title>DigiLocker</title>
                 <rect x="110" y="28" width="140" height="90" rx="14" fill="var(--bg-elev)" stroke="var(--teal)" stroke-width="2"/>
                 <rect x="128" y="48" width="104" height="12" rx="4" fill="var(--india-green)" opacity=".55"/>
                 <rect x="128" y="70" width="84" height="10" rx="4" fill="var(--saffron)" opacity=".55"/>
@@ -1190,11 +1190,11 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
           <div class="stack-visual" data-stack-i="2" id="visual-ondc">
             <div class="stack-visual__art">
               <svg viewBox="0 0 360 140" role="img" aria-label="ONDC network"><title>ONDC</title>
-                <circle cx="180" cy="70" r="22" fill="var(--teal)" opacity=".9"/>
+                <circle cx="180" cy="62" r="22" fill="var(--teal)" opacity=".9"/>
                 <circle cx="90" cy="40" r="14" fill="var(--saffron)" opacity=".85"/>
                 <circle cx="270" cy="40" r="14" fill="var(--india-green)" opacity=".85"/>
-                <circle cx="90" cy="100" r="14" fill="var(--orange-bright)" opacity=".8"/>
-                <circle cx="270" cy="100" r="14" fill="var(--teal-bright)" opacity=".8"/>
+                <circle cx="90" cy="88" r="14" fill="var(--orange-bright)" opacity=".8"/>
+                <circle cx="270" cy="88" r="14" fill="var(--teal-bright)" opacity=".8"/>
                 <path d="M102 48 L162 62 M258 48 L198 62 M102 92 L162 78 M258 92 L198 78" stroke="var(--border)" stroke-width="2"/>
               </svg>
             </div>

@@ -609,33 +609,31 @@ html[data-theme="dark"] .device-gate__warn{background:rgba(255,153,51,.22);backg
   html:not(.device-allowed):not(.device-continued) .device-gate{display:flex!important}
 }
 
-/* ===== MOTION GATE (large screens only; never with device gate) ===== */
+/* ===== MOTION GATE (all screens; after device gate on phones) ===== */
 .motion-gate{display:none}
-html.device-blocked .motion-gate{display:none!important}
-@media(min-width:1280px){
-  body.motion-lock:not(.gate-active){overflow:hidden!important}
-  body.motion-lock:not(.gate-active) > :not(.motion-gate):not(script){visibility:hidden!important;pointer-events:none!important}
-  .motion-gate[hidden]{display:none!important}
-  html:not(.device-blocked) body.motion-lock .motion-gate:not([hidden]){display:flex;position:fixed;inset:0;z-index:100001;align-items:center;justify-content:center;padding:max(1.25rem,env(safe-area-inset-top)) max(1.25rem,env(safe-area-inset-right)) max(1.25rem,env(safe-area-inset-bottom)) max(1.25rem,env(safe-area-inset-left));background:var(--bg);color:var(--text)}
-  .motion-gate__card{max-width:32rem;width:100%;max-height:min(90dvh,720px);overflow:auto;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.75rem 1.5rem 1.5rem;text-align:left;position:relative}
-  .motion-gate__card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);pointer-events:none}
-  .motion-gate__mark{width:48px;height:48px;margin:0 0 .9rem;border-radius:14px;background:linear-gradient(180deg,#FF9933 0 33.333%,#FFFFFF 33.333% 66.666%,#138808 66.666% 100%);display:grid;place-items:center}
-  .motion-gate__mark svg{width:26px;height:26px;fill:#1A2436}
-  .motion-gate h2{font-size:1.4rem;margin:0 0 .65rem;letter-spacing:-.02em}
-  .motion-gate p{margin:0 0 .9rem;color:var(--muted);font-size:1rem;line-height:1.55}
-  .motion-gate__notice{margin:0 0 1rem;padding:.75rem .9rem;border-radius:10px;border:1px solid var(--saffron);background:rgba(255,153,51,.18);background:color-mix(in srgb,var(--saffron) 18%,var(--bg-card));color:var(--text);font-size:.95rem;line-height:1.5}
-  .motion-gate__actions{display:flex;flex-direction:column;gap:.65rem;margin-top:1.1rem}
-  .motion-gate__actions .btn{width:100%;min-height:44px;justify-content:center;white-space:normal}
-  .motion-gate__note{margin:0 0 .75rem;padding:.65rem .8rem;border-radius:10px;border:1px solid var(--border);background:var(--bg-elev);color:var(--muted);font-size:.92rem;line-height:1.5}
-  .motion-gate__os{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-top:.85rem}
-  .motion-gate__os button{min-height:48px;padding:.7rem .85rem;border-radius:12px;border:1px solid var(--border);background:var(--bg-elev);color:var(--text);font-weight:700;font-size:.95rem;cursor:pointer;text-align:left;touch-action:manipulation}
-  .motion-gate__os button:hover,.motion-gate__os button:focus-visible{border-color:var(--india-green);color:var(--india-green)}
-  .motion-gate__guide ol{margin:.4rem 0 1rem 1.15rem;color:var(--muted);font-size:.98rem;line-height:1.55}
-  .motion-gate__guide li{margin:.35rem 0}
-  .motion-gate__guide strong{color:var(--text)}
-  .motion-gate [hidden]{display:none!important}
-}
-@media(max-width:1279px){.motion-gate{display:none!important}}
+html.device-blocked .motion-gate,
+body.gate-active .motion-gate{display:none!important}
+body.motion-lock:not(.gate-active){overflow:hidden!important}
+body.motion-lock:not(.gate-active) > :not(.motion-gate):not(script){visibility:hidden!important;pointer-events:none!important}
+.motion-gate[hidden]{display:none!important}
+html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([hidden]){display:flex;position:fixed;inset:0;z-index:100001;align-items:center;justify-content:center;padding:max(1.25rem,env(safe-area-inset-top)) max(1.25rem,env(safe-area-inset-right)) max(1.25rem,env(safe-area-inset-bottom)) max(1.25rem,env(safe-area-inset-left));background:var(--bg);color:var(--text)}
+.motion-gate__card{max-width:32rem;width:100%;max-height:min(90dvh,720px);overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.5rem 1.25rem 1.35rem;text-align:left;position:relative}
+.motion-gate__card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);pointer-events:none}
+.motion-gate__mark{width:48px;height:48px;margin:0 0 .9rem;border-radius:14px;background:linear-gradient(180deg,#FF9933 0 33.333%,#FFFFFF 33.333% 66.666%,#138808 66.666% 100%);display:grid;place-items:center}
+.motion-gate__mark svg{width:26px;height:26px;fill:#1A2436}
+.motion-gate h2{font-size:clamp(1.2rem,4.5vw,1.4rem);margin:0 0 .65rem;letter-spacing:-.02em}
+.motion-gate p{margin:0 0 .9rem;color:var(--muted);font-size:1rem;line-height:1.55}
+.motion-gate__notice{margin:0 0 1rem;padding:.75rem .9rem;border-radius:10px;border:1px solid var(--saffron);background:rgba(255,153,51,.18);background:color-mix(in srgb,var(--saffron) 18%,var(--bg-card));color:var(--text);font-size:.95rem;line-height:1.5}
+.motion-gate__actions{display:flex;flex-direction:column;gap:.65rem;margin-top:1.1rem}
+.motion-gate__actions .btn{width:100%;min-height:44px;justify-content:center;white-space:normal}
+.motion-gate__note{margin:0 0 .75rem;padding:.65rem .8rem;border-radius:10px;border:1px solid var(--border);background:var(--bg-elev);color:var(--muted);font-size:.92rem;line-height:1.5}
+.motion-gate__os{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-top:.85rem}
+.motion-gate__os button{min-height:48px;padding:.7rem .85rem;border-radius:12px;border:1px solid var(--border);background:var(--bg-elev);color:var(--text);font-weight:700;font-size:.95rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.motion-gate__os button:hover,.motion-gate__os button:focus-visible{border-color:var(--india-green);color:var(--india-green)}
+.motion-gate__guide ol{margin:.4rem 0 1rem 1.15rem;color:var(--muted);font-size:.98rem;line-height:1.55}
+.motion-gate__guide li{margin:.35rem 0}
+.motion-gate__guide strong{color:var(--text)}
+.motion-gate [hidden]{display:none!important}
 </style></head><body>
 
 <div class="device-gate" id="device-gate" role="presentation">
@@ -658,7 +656,7 @@ html.device-blocked .motion-gate{display:none!important}
 
     <div id="motion-step-1" class="motion-step">
       <h2 id="motion-gate-title">Check motion settings first</h2>
-      <p>Before you use DigitAlaya on this large display, make sure your device, operating system, or browser does not have any setting that reduces or removes animations or motion. If such a setting is on, turn it off so this page can show its animations and interface correctly.</p>
+      <p>Before you use DigitAlaya, make sure your phone, computer, or browser does not have a setting that reduces or removes animations or motion. If that setting is on, turn it off so this page can show its animations correctly.</p>
       <p id="motion-rm-notice" class="motion-gate__notice" hidden>This browser is currently reporting that reduced motion is active. Turn that setting off, then continue.</p>
       <p class="motion-gate__note">If you continue with reduce-motion still on, you will not see all animations, the page may look incomplete, and you might hit bugs or glitches.</p>
       <div class="motion-gate__actions">
@@ -682,8 +680,10 @@ html.device-blocked .motion-gate{display:none!important}
     <div id="motion-step-3" class="motion-step" hidden>
       <h2 id="motion-step-3-title">Which system are you on?</h2>
       <p>Pick your operating system. We will show short steps to turn off settings that strip motion or break animations on this page.</p>
-      <p class="motion-gate__note">Phones and other small screens cannot use DigitAlaya. These steps are only for a large display.</p>
+      <p class="motion-gate__note">Pick the system you are using now. On phones, Android and iPhone steps are listed first.</p>
       <div class="motion-gate__os" role="group" aria-label="Operating system">
+        <button type="button" data-os="android">Android</button>
+        <button type="button" data-os="ios">iPhone / iPad</button>
         <button type="button" data-os="windows">Windows</button>
         <button type="button" data-os="macos">macOS</button>
         <button type="button" data-os="linux">Linux or ChromeOS</button>
@@ -2508,7 +2508,7 @@ window.addEventListener("digitalaya-device-continued", function(){
         const ev = new Event("digitalaya-device-continued");
         window.dispatchEvent(ev);
       } catch (e) {}
-      /* Let motion gate decide on large screens; small screens go straight in */
+      /* After continue, motion gate can show on phones too */
       try {
         if (typeof window.__digitalayaMotionSync === "function") window.__digitalayaMotionSync();
       } catch (e2) {}
@@ -2552,6 +2552,24 @@ window.addEventListener("digitalaya-device-continued", function(){
   let lastFocus = null;
 
   const GUIDES = {
+    android: {
+      title: "Android",
+      html: "<p><strong>Turn Remove animations / Reduce motion off</strong></p><ol>"
+        + "<li>Open <strong>Settings</strong> → <strong>Accessibility</strong> (sometimes under <strong>Additional settings</strong>).</li>"
+        + "<li>Look for <strong>Remove animations</strong>, <strong>Remove animations</strong> toggle, or <strong>Visibility enhancements</strong> → turn it <strong>Off</strong>.</li>"
+        + "<li>On some phones: <strong>Developer options</strong> → set <strong>Window / Transition / Animator duration scale</strong> to <strong>1x</strong> (not Animation off).</li>"
+        + "<li>Chrome and most Android browsers follow this. Refresh DigitAlaya after changing settings.</li>"
+        + "</ol>"
+    },
+    ios: {
+      title: "iPhone / iPad",
+      html: "<p><strong>Turn Reduce Motion off</strong></p><ol>"
+        + "<li>Open the <strong>Settings</strong> app.</li>"
+        + "<li>Go to <strong>Accessibility</strong> → <strong>Motion</strong>.</li>"
+        + "<li>Turn <strong>Reduce Motion</strong> <strong>Off</strong>.</li>"
+        + "<li>Safari and Chrome on iOS follow this. Return here and refresh DigitAlaya.</li>"
+        + "</ol>"
+    },
     windows: {
       title: "Windows",
       html: "<p><strong>Turn animation effects back on</strong></p><ol>"
@@ -2585,7 +2603,7 @@ window.addEventListener("digitalaya-device-continued", function(){
     browser: {
       title: "Browser only",
       html: "<p><strong>Most browsers follow the operating system</strong></p><ol>"
-        + "<li>Chrome, Edge, and Safari normally follow the system reduce-motion preference. Change the setting on Windows, macOS, Linux, or ChromeOS using the steps for that system. DigitAlaya does not support phones or other small screens.</li>"
+        + "<li>Chrome, Edge, and Safari normally follow the system reduce-motion preference. Change it in Android, iPhone, Windows, macOS, or Linux using the steps for that system.</li>"
         + "<li>Firefox: open <strong>Settings</strong> → <strong>General</strong> → <strong>Browsing</strong>, and make sure nothing forces reduced motion. Advanced users can set <strong>about:config</strong> key <strong>ui.prefersReducedMotion</strong> to <strong>0</strong>.</li>"
         + "<li>After changing settings, refresh DigitAlaya. If this notice still appears, the browser is still reporting reduced motion.</li>"
         + "</ol>"
@@ -2640,6 +2658,9 @@ window.addEventListener("digitalaya-device-continued", function(){
     if (lastFocus && typeof lastFocus.focus === "function") {
       try { lastFocus.focus(); } catch(e){}
     }
+    try {
+      if (typeof window.__digitalayaWake === "function") window.__digitalayaWake("motion-unlocked");
+    } catch(eW){}
   }
 
   function deviceBlocked(){
@@ -2649,7 +2670,8 @@ window.addEventListener("digitalaya-device-continued", function(){
   }
 
   function sync(){
-    if (!mqWide.matches || deviceBlocked()) {
+    /* Show on phones after Continue anyway, and on allowed large screens */
+    if (deviceBlocked()) {
       gate.hidden = true;
       document.body.classList.remove("motion-lock");
       active = false;

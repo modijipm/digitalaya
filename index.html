@@ -305,7 +305,20 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 .stat__l{font-size:.85rem;color:var(--muted);margin-top:.3rem;line-height:1.4}
 .mesh{position:absolute;inset:auto -10% -20% auto;width:min(520px,70vw);height:min(420px,55vw);pointer-events:none;z-index:0}
 @media(max-width:600px){.mesh{inset:8% -18% auto auto;width:min(340px,92vw);height:min(280px,70vw);opacity:.9}}
-.mesh__parallax{width:100%;height:100%}
+.mesh__parallax{width:100%;height:100%;will-change:transform}
+.hero__art-clip{overflow:hidden;border-radius:var(--radius);max-width:420px;margin-inline:auto}
+.hero__art-parallax{width:118%;margin-left:-9%;will-change:transform}
+.hero__art-parallax .network{width:100%;max-width:none;margin-inline:0}
+.bento__parallax-clip{overflow:hidden;border-radius:var(--radius);min-height:100%}
+.bento__parallax-inner{display:block;padding:1.15rem 1.2rem 1.35rem;min-height:118%;will-change:transform}
+.section-deco{position:absolute;inset:auto -8% -18% auto;width:min(280px,42vw);height:min(220px,36vw);pointer-events:none;z-index:0;opacity:.45;border-radius:50%;filter:blur(56px);background:radial-gradient(circle,var(--india-green),transparent 70%);will-change:transform}
+.section-deco--saffron{background:radial-gradient(circle,var(--saffron),transparent 70%);inset:12% auto auto -10%;opacity:.38}
+#mission,#impact,#vision{position:relative}
+#mission .wrap,#impact .wrap,#vision .wrap{position:relative;z-index:1}
+[data-speed],[data-lag]{will-change:transform}
+@media (prefers-reduced-motion: reduce){
+  [data-speed],[data-lag],.mesh__parallax,.bento__parallax-inner,.section-deco{transform:none!important;will-change:auto}
+}
 .mesh__blob{position:absolute;border-radius:50%;filter:blur(48px);opacity:.55;will-change:transform;animation:drift 9s ease-in-out infinite alternate}
 .mesh__blob--1{width:60%;height:60%;left:10%;top:10%;background:var(--india-green);animation-duration:16s;animation-direction:alternate}
 .mesh__blob--2{width:50%;height:50%;right:5%;bottom:10%;background:var(--saffron);opacity:.55;animation-duration:20s;animation-direction:alternate-reverse;animation-delay:-5s}
@@ -883,7 +896,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
 </div>
 <main id="main">
 <section class="hero" id="top" data-hue="200">
-  <div class="mesh" aria-hidden="true"><div class="mesh__parallax" data-parallax>
+  <div class="mesh" aria-hidden="true"><div class="mesh__parallax" data-speed="0.35">
     <div class="mesh__blob mesh__blob--1"></div><div class="mesh__blob mesh__blob--2"></div>
   </div></div>
   <div class="wrap hero__grid">
@@ -902,14 +915,19 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
       </div>
     </div>
     <div class="hero__art reveal reveal--fade" aria-hidden="true">
-      <svg class="network" id="net" viewBox="0 0 400 400" role="img"><title>Abstract digital network</title>
-        <g fill="none" stroke="currentColor" stroke-width="1.2" opacity=".35" id="net-edges"></g>
-        <g id="net-nodes"></g>
-      </svg>
+      <div class="hero__art-clip">
+        <div class="hero__art-parallax" data-speed="auto" data-lag="0.45">
+          <svg class="network" id="net" viewBox="0 0 400 400" role="img"><title>Abstract digital network</title>
+            <g fill="none" stroke="currentColor" stroke-width="1.2" opacity=".35" id="net-edges"></g>
+            <g id="net-nodes"></g>
+          </svg>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 <section class="section" id="mission" data-hue="190">
+  <div class="section-deco" data-speed="0.75" aria-hidden="true"></div>
   <div class="wrap">
     <p class="eyebrow reveal reveal--soft">Mission</p>
     <p class="mission-words reveal reveal--rise" id="mission-words">Digital India set out to transform India into a knowledge economy and a digitally empowered society: connecting villages, simplifying governance, and building open digital public infrastructure that millions can trust every day.</p>
@@ -1051,12 +1069,13 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   </div>
 </section>
 <section class="section" id="impact" data-hue="170">
+  <div class="section-deco section-deco--saffron" data-speed="0.8" aria-hidden="true"></div>
   <div class="wrap">
     <p class="eyebrow reveal reveal--soft">Impact</p>
     <h2 class="reveal reveal--pop">Digital India in figures</h2>
     <p class="lead reveal reveal--rise">Bento of verified public figures. Each tile cites an as-of date.</p>
     <div class="bento reveal-stagger">
-      <div class="card spot tilt"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations</span><small>as of Mar 2026 · UIDAI</small></div>
+      <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations</span><small>as of Mar 2026 · UIDAI</small></div></div></div>
       <div class="card spot tilt"><b data-count="59.09" data-decimals="2" data-suffix=" Cr">0</b><span>Jan Dhan accounts</span><small>as of Aug 2026 · from 14.72 Cr in Mar 2015</small></div>
       <div class="card spot tilt"><b data-count="1.11" data-decimals="2" data-prefix="~" data-suffix=" Bn">0</b><span>Internet subscribers</span><small>as of Jun 2026 · TRAI</small></div>
       <div class="card spot tilt"><b data-count="2.15" data-decimals="2" data-prefix="&gt;" data-suffix=" Lakh">0</b><span>Gram panchayats on BharatNet</span><small>~97% · Jan 2026</small></div>
@@ -1118,6 +1137,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   </div>
 </section>
 <section class="section" id="vision" data-hue="220">
+  <div class="section-deco" data-speed="0.85" data-lag="0.35" aria-hidden="true"></div>
   <div class="wrap">
     <p class="eyebrow reveal reveal--soft">See the Vision</p>
     <h2 class="reveal reveal--pop">Vision 2047</h2>
@@ -1462,7 +1482,6 @@ window.addEventListener("digitalaya-device-continued", function(){
   const mSpans = mission ? [...mission.querySelectorAll("span")] : [];
   let lastLit = -1;
   let lastY = scrollY, ticking = false;
-  const parallaxParents = [...document.querySelectorAll("[data-parallax]")];
   const supportsTimeline = CSS.supports && CSS.supports("animation-timeline", "view()");
   let maxScroll = 1;
   let missionTop = 0, missionH = 1;
@@ -1633,14 +1652,6 @@ window.addEventListener("digitalaya-device-continued", function(){
     }
 
     /* Pillar sticky stackscale removed — cascade entrance owns motion */
-
-    if (!reduceMotion && finePointer) {
-      parallaxParents.forEach(par => {
-        const r = par.getBoundingClientRect();
-        const o = (r.top / vh) * 24;
-        par.style.transform = "translate3d(0," + o + "px,0)";
-      });
-    }
   }
 
   function onScroll(){
@@ -1665,6 +1676,178 @@ window.addEventListener("digitalaya-device-continued", function(){
   cacheLayout();
   frame();
   toTop.addEventListener("click", () => scrollTo({top:0, behavior: reduceMotion ? "auto" : "smooth"}));
+})();
+
+
+/* ===== NATIVE-SCROLL PARALLAX (data-speed / data-lag) ===== */
+(function PARALLAX(){
+  if (reduceMotion) return;
+  const nodes = [...document.querySelectorAll("[data-speed],[data-lag]")];
+  if (!nodes.length) return;
+
+  const items = nodes.map(el => {
+    const speedRaw = el.getAttribute("data-speed");
+    const lagRaw = el.getAttribute("data-lag");
+    const auto = speedRaw === "auto";
+    let speed = 1;
+    if (!auto && speedRaw != null && speedRaw !== "") {
+      const n = parseFloat(speedRaw);
+      if (!isNaN(n)) speed = n;
+    }
+    let lag = 0;
+    if (lagRaw != null && lagRaw !== "") {
+      const n = parseFloat(lagRaw);
+      if (!isNaN(n) && n > 0) lag = n;
+    }
+    return {
+      el,
+      auto,
+      speed,
+      lag,
+      parent: auto ? el.parentElement : null,
+      natTop: 0,
+      natH: 0,
+      parentTop: 0,
+      parentH: 0,
+      childH: 0,
+      overflow: 0,
+      targetY: 0,
+      currentY: 0,
+      dirty: true
+    };
+  }).filter(it => it.el && (!it.auto || (it.parent && it.parent !== document.body)));
+
+  let lastTs = 0;
+  let raf = 0;
+  let needsLoop = false;
+
+  function layoutTop(el){
+    let y = 0, n = el;
+    while (n) {
+      y += n.offsetTop;
+      n = n.offsetParent;
+    }
+    return y;
+  }
+
+  function clearXforms(){
+    items.forEach(it => { it.el.style.transform = "none"; });
+  }
+
+  function measure(){
+    clearXforms();
+    void document.documentElement.offsetHeight;
+    items.forEach(it => {
+      it.natTop = layoutTop(it.el);
+      it.natH = Math.max(1, it.el.offsetHeight);
+      if (it.auto && it.parent) {
+        it.parentTop = layoutTop(it.parent);
+        it.parentH = Math.max(1, it.parent.offsetHeight);
+        it.childH = Math.max(1, it.el.offsetHeight);
+        it.overflow = it.childH - it.parentH;
+        const cs = getComputedStyle(it.parent);
+        if (cs.overflow === "visible" || cs.overflowY === "visible") {
+          it.parent.style.overflow = "hidden";
+        }
+      }
+      it.dirty = true;
+    });
+    items.forEach(it => {
+      it.el.style.transform = "translate3d(0," + it.currentY.toFixed(2) + "px,0)";
+    });
+  }
+
+  function computeTargets(){
+    const sy = scrollY;
+    const vh = innerHeight || 1;
+    const viewCenter = sy + vh * 0.5;
+    items.forEach(it => {
+      let y = 0;
+      if (it.auto) {
+        if (it.overflow > 1) {
+          const parentCenter = it.parentTop + it.parentH * 0.5;
+          const range = Math.max(1, (vh + it.parentH) * 0.5);
+          const t = Math.max(-1, Math.min(1, (parentCenter - viewCenter) / range));
+          y = t * (it.overflow * 0.5);
+        } else if (it.overflow < -1) {
+          /* child smaller: mild travel still based on gap */
+          const parentCenter = it.parentTop + it.parentH * 0.5;
+          const range = Math.max(1, (vh + it.parentH) * 0.5);
+          const t = Math.max(-1, Math.min(1, (parentCenter - viewCenter) / range));
+          y = t * (Math.abs(it.overflow) * 0.5);
+        }
+      } else if (it.speed !== 1) {
+        const elCenter = it.natTop + it.natH * 0.5;
+        const delta = elCenter - viewCenter;
+        y = delta * (it.speed - 1);
+      }
+      it.targetY = y;
+      it.dirty = true;
+    });
+  }
+
+  function apply(dt){
+    let moving = false;
+    items.forEach(it => {
+      let y;
+      if (it.lag > 0) {
+        const alpha = 1 - Math.exp(-dt / it.lag);
+        it.currentY += (it.targetY - it.currentY) * alpha;
+        if (Math.abs(it.targetY - it.currentY) > 0.08) moving = true;
+        else it.currentY = it.targetY;
+        y = it.currentY;
+      } else {
+        it.currentY = it.targetY;
+        y = it.targetY;
+      }
+      it.el.style.transform = "translate3d(0," + y.toFixed(2) + "px,0)";
+    });
+    return moving;
+  }
+
+  let scrollFresh = false;
+  function loop(ts){
+    raf = 0;
+    if (!lastTs) lastTs = ts;
+    let dt = (ts - lastTs) / 1000;
+    lastTs = ts;
+    if (dt > 0.064) dt = 0.064;
+    if (dt < 0.001) dt = 0.001;
+    computeTargets();
+    const moving = apply(dt);
+    const keep = moving || scrollFresh;
+    scrollFresh = false;
+    if (keep) raf = requestAnimationFrame(loop);
+    else lastTs = 0;
+  }
+
+  function kick(){
+    scrollFresh = true;
+    if (!raf) {
+      lastTs = 0;
+      raf = requestAnimationFrame(loop);
+    }
+  }
+
+  window.__digitalayaParallaxTick = kick;
+
+  function refresh(){
+    measure();
+    kick();
+  }
+
+  addEventListener("scroll", kick, {passive:true});
+  addEventListener("resize", refresh, {passive:true});
+  addEventListener("load", refresh, {passive:true});
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(refresh).catch(function(){});
+  try {
+    if (window.visualViewport) {
+      visualViewport.addEventListener("resize", refresh, {passive:true});
+    }
+  } catch (e) {}
+  if (window.__digitalayaRegisterWake) window.__digitalayaRegisterWake(refresh);
+  /* initial after layout */
+  requestAnimationFrame(function(){ refresh(); });
 })();
 
 /* ===== COUNTERS ===== */

@@ -17,10 +17,11 @@ Source of truth (kept identical):
 | `.reveal--soft` | Gentler rise, longer duration |
 | `.reveal--fade` | Opacity only (sticky UPI stage, hero art) |
 | `.reveal-stagger` | Children enter with uneven delays (~95–140ms organic) |
+| `.pillars-cascade` | Nine Pillars only: parent-driven spring cascade |
 
 Grid children also get alternating transforms via `:nth-child(6n+…)` so a bento/services row does not feel samey.
 
-**Nine Pillars:** each `<article class="pillar">` has its own `.reveal` + alternating variant (`--pop` / `--rise` / `--left` / `--right` / `--tilt`). Parent `.pillars` is **not** `reveal-stagger`, so each card is observed and animates as it enters. On phones/narrow: full pop/slide transforms. On sticky wide (`min-width:800px`): **opacity + `cardEnterFlash` only** (`transform:none`) so `position:sticky` stacking still works.
+**Nine Pillars (competition cascade):** `.pillars` has `reveal-stagger pillars-cascade`. Sticky stack + view-timeline `stackscale` removed so every width can use full motion. Parent is observed once; children get `.is-in` together; CSS `animation-delay` (~130–150ms) + `@keyframes pillarIn` / `pillarInLeft` / `pillarInRight` (overshoot spring, ~0.95s, `cubic-bezier(.22,1.2,.36,1)`) create the wave. Inner flourishes: tiranga `::before` `scaleX(0→1)`, `.pillar__n` pop, stronger `pillarEnterFlash`. Coarse/phone: lateral variants collapse to `pillarIn` (scale+Y only).
 
 Cards / spots / stats / milestones / metrics / flips / svc tiles get a soft saffron→green **border flash** (`cardEnterFlash`) when `.is-in` lands.
 
@@ -29,19 +30,19 @@ Tab panels use `panelPop`; metrics inside an active panel use staggered `metricP
 ## Phone / Android wake
 
 1. Device gate still first; motion gate after **Continue anyway**.
-2. `__digitalayaWake` → `wakeReveals` → `forceNearViewport` marks near items with **stagger** (CSS transitions play — no instant snap).
+2. `__digitalayaWake` → `wakeReveals` → `forceNearViewport` marks near items with **stagger** (CSS transitions play — no instant snap). Pillars cascade uses CSS delays after a single mark-in tick.
 3. IO: thresholds `[0, 0.12, 0.22, 0.35]`, `rootMargin: 0px 0px -8% 0px`.
 4. Re-observe after unlock for anything still pending.
 5. Safety: after ~2.4s, only **near-viewport** leftover hidden nodes get `.is-in` + `.reveal-force` (below-fold scroll reveals stay intact).
-6. Sticky UPI stage: **opacity-only** (transform would break `position:sticky`). Pillars: full transforms on narrow; opacity+flash only on sticky wide.
+6. Sticky UPI stage: **opacity-only** (transform would break `position:sticky`). Pillars: full spring cascade on all widths (no sticky stack).
 
 ## Reduced motion
 
-`prefers-reduced-motion: reduce` (and existing `reduceMotion` JS): all reveals / panel pops / card flashes snap to final with no transition.
+`prefers-reduced-motion: reduce` (and existing `reduceMotion` JS): all reveals / panel pops / card flashes / pillar cascade snap to final with no transition or keyframes.
 
 ## What was wired
 
-Hero (eyebrow, title, lead, CTAs, stats, art), mission, journey header + track, milestones (existing stagger), pillars, UPI header + fade stage + step cards, stack header/tabs/panels, UPI compare bars + card, impact header + bento, services track + nav, toolkit flips + quiz shell, vision header + cards + timeline items, pledge header + form, sources list, footer blocks.
+Hero (eyebrow, title, lead, CTAs, stats, art), mission, journey header + track, milestones (existing stagger), pillars (cascade), UPI header + fade stage + step cards, stack header/tabs/panels, UPI compare bars + card, impact header + bento, services track + nav, toolkit flips + quiz shell, vision header + cards + timeline items, pledge header + form, sources list, footer blocks.
 
 ## Kept intact
 
@@ -49,7 +50,7 @@ Counters (~4–7s calm), UPI bar JS grow, sticky UPI demo, marquee fixes, device
 
 ## Risks
 
-- More simultaneous transitions on low-end Androids → mitigated with opacity-only sticky wide pillars / UPI, no rotate on coarse pointers, will-change cleared after `.is-in`, 2.4s force safety.
-- Safari stackscale fallback only writes inline opacity/transform on pillars that already have `.is-in` (never fights entrance reveals).
+- Nine simultaneous spring keyframes on low-end Androids → mitigated with no rotate on coarse, will-change only while cascading, 2.4s force safety, reduced-motion snap.
+- Sticky pillar stack removed — desktop list has gaps like phones (intentional for motion quality).
 - Nested `.reveal-stagger` (hero content → hero stats) relies on recursive `markIn`.
 - Horizontal `.services` stagger reveals off-screen cards when the track enters — intentional.

@@ -895,16 +895,26 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   padding:max(1.25rem,env(safe-area-inset-top)) max(1.25rem,env(safe-area-inset-right)) max(1.25rem,env(safe-area-inset-bottom)) max(1.25rem,env(safe-area-inset-left));
   background:var(--bg);color:var(--text);text-align:center;overflow:auto
 }
-.motion-gate__card{max-width:26rem;width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.75rem 1.35rem 1.5rem;position:relative;overflow:hidden;text-align:center}
+.motion-gate__card{max-width:32rem;width:100%;max-height:min(90dvh,760px);overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.5rem 1.25rem 1.35rem;position:relative;text-align:left}
 .motion-gate__card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);pointer-events:none}
-.motion-gate__mark{width:48px;height:48px;margin:0 auto .9rem;border-radius:14px;background:linear-gradient(180deg,#FF9933 0 33.333%,#FFFFFF 33.333% 66.666%,#138808 66.666% 100%);display:grid;place-items:center}
+.motion-gate__mark{width:48px;height:48px;margin:0 0 .9rem;border-radius:14px;background:linear-gradient(180deg,#FF9933 0 33.333%,#FFFFFF 33.333% 66.666%,#138808 66.666% 100%);display:grid;place-items:center}
 .motion-gate__mark svg{width:26px;height:26px;fill:#1A2436}
 .motion-gate h2{font-size:clamp(1.2rem,4.5vw,1.4rem);margin:0 0 .65rem;letter-spacing:-.02em}
 .motion-gate p{margin:0 0 .9rem;color:var(--muted);font-size:1rem;line-height:1.55}
 .motion-gate__warn{margin:0 0 1rem;padding:.75rem .9rem;border-radius:10px;border:1px solid var(--saffron);background:rgba(255,153,51,.18);background:color-mix(in srgb,var(--saffron) 18%,var(--bg-card));color:var(--text);font-size:.95rem;line-height:1.5;text-align:left}
-.motion-gate__actions{display:flex;flex-direction:column;gap:.65rem;margin-top:.35rem}
+.motion-gate__actions{display:flex;flex-direction:column;gap:.65rem;margin-top:1rem}
 .motion-gate__actions .btn{width:100%;min-height:48px;justify-content:center;white-space:normal}
 .motion-gate__hint{margin:0;color:var(--muted);font-size:.9rem;line-height:1.45}
+.motion-gate__os-label{margin:0 0 .55rem;font-weight:700;color:var(--text);font-size:.95rem}
+.motion-gate__os{display:grid;grid-template-columns:1fr 1fr;gap:.55rem;margin:0 0 .85rem}
+.motion-gate__os button{min-height:48px;padding:.65rem .8rem;border-radius:12px;border:1px solid var(--border);background:var(--bg-elev);color:var(--text);font-weight:700;font-size:.92rem;cursor:pointer;text-align:left;touch-action:manipulation}
+.motion-gate__os button:hover,.motion-gate__os button:focus-visible,.motion-gate__os button.is-on{border-color:var(--india-green);color:var(--india-green)}
+.motion-gate__guide{margin:0 0 .85rem;padding:.75rem .85rem;border-radius:12px;border:1px solid var(--border);background:var(--bg-elev)}
+.motion-gate__guide[hidden]{display:none!important}
+.motion-gate__guide h3{margin:0 0 .45rem;font-size:1.02rem;color:var(--text)}
+.motion-gate__guide ol{margin:.25rem 0 0 1.15rem;color:var(--muted);font-size:.95rem;line-height:1.55}
+.motion-gate__guide li{margin:.3rem 0}
+.motion-gate__guide strong{color:var(--text)}
 html[data-theme="dark"] .motion-gate__warn{background:rgba(255,153,51,.22);background:color-mix(in srgb,var(--saffron) 22%,#152033);color:#E8EEF7;border-color:#FF9933}
 </style></head><body>
 
@@ -928,9 +938,20 @@ html[data-theme="dark"] .motion-gate__warn{background:rgba(255,153,51,.22);backg
     <h2 id="motion-gate-title">Reduce motion is on</h2>
     <p>Your system or browser is reporting that reduced motion is active. DigitAlaya uses scroll scenes and animations that will stay off or look incomplete while this setting is on.</p>
     <p class="motion-gate__warn">If you continue with reduce motion still on, you will not see all animations, the page may look incomplete, and you might hit bugs or glitches.</p>
+    <p class="motion-gate__os-label" id="motion-os-label">Pick your system for turn-off steps</p>
+    <div class="motion-gate__os" role="group" aria-labelledby="motion-os-label">
+      <button type="button" data-os="win11">Windows 11</button>
+      <button type="button" data-os="win10">Windows 10</button>
+      <button type="button" data-os="android">Android</button>
+      <button type="button" data-os="ios">iPhone / iPad</button>
+      <button type="button" data-os="macos">macOS</button>
+      <button type="button" data-os="linux">Linux / ChromeOS</button>
+      <button type="button" data-os="browser">Browser only</button>
+    </div>
+    <div class="motion-gate__guide" id="motion-guide" hidden aria-live="polite"></div>
     <div class="motion-gate__actions">
       <button type="button" class="btn" id="motion-continue">Continue anyway</button>
-      <p class="motion-gate__hint">For the full experience, turn off Reduce motion / Prefer reduced motion in your accessibility settings, then reload.</p>
+      <p class="motion-gate__hint">After you turn the setting off, reload this page for the full motion experience.</p>
     </div>
   </div>
 </div>
@@ -3328,10 +3349,76 @@ window.addEventListener("digitalaya-device-continued", function(){
   const gate = document.getElementById("motion-gate");
   const card = document.getElementById("motion-gate-card");
   const btn = document.getElementById("motion-continue");
+  const guide = document.getElementById("motion-guide");
+  const osBtns = gate ? gate.querySelectorAll(".motion-gate__os [data-os]") : [];
   if (!gate) return;
 
   const KEY = "digitalaya-motion-ok";
   const mqReduce = matchMedia("(prefers-reduced-motion: reduce)");
+
+  const GUIDES = {
+    win11: {
+      title: "Windows 11",
+      html: "<ol>"
+        + "<li>Press <strong>Win + I</strong> to open <strong>Settings</strong>.</li>"
+        + "<li>Go to <strong>Accessibility</strong>, then <strong>Visual effects</strong>.</li>"
+        + "<li>Turn <strong>Animation effects</strong> <strong>On</strong>.</li>"
+        + "<li>Optional: press <strong>Win + R</strong>, type <strong>sysdm.cpl</strong>, open <strong>Advanced</strong> → <strong>Settings</strong> under Performance, and keep <strong>Animate controls and elements inside windows</strong> checked.</li>"
+        + "<li>Reload this page.</li>"
+        + "</ol>"
+    },
+    win10: {
+      title: "Windows 10",
+      html: "<ol>"
+        + "<li>Press <strong>Win + I</strong> to open <strong>Settings</strong>.</li>"
+        + "<li>Go to <strong>Ease of Access</strong>, then <strong>Display</strong>.</li>"
+        + "<li>Turn <strong>Show animations in Windows</strong> <strong>On</strong>.</li>"
+        + "<li>Optional: press <strong>Win + R</strong>, type <strong>sysdm.cpl</strong>, open <strong>Advanced</strong> → <strong>Settings</strong> under Performance, choose <strong>Custom</strong>, and keep animation options checked (especially <strong>Animate controls and elements inside windows</strong>).</li>"
+        + "<li>Reload this page.</li>"
+        + "</ol>"
+    },
+    android: {
+      title: "Android",
+      html: "<ol>"
+        + "<li>Open <strong>Settings</strong> → <strong>Accessibility</strong> (wording varies by phone).</li>"
+        + "<li>Look for <strong>Remove animations</strong>, developer animation scales, or other motion settings.</li>"
+        + "<li>Turn remove-animations <strong>Off</strong>, and set Window / Transition / Animator duration scale to <strong>1x</strong> if you see those options.</li>"
+        + "<li>Reload this page.</li>"
+        + "</ol>"
+    },
+    ios: {
+      title: "iPhone / iPad",
+      html: "<ol>"
+        + "<li>Open <strong>Settings</strong> → <strong>Accessibility</strong> → <strong>Motion</strong>.</li>"
+        + "<li>Turn <strong>Reduce Motion</strong> <strong>Off</strong>.</li>"
+        + "<li>Reload this page in Safari or your browser.</li>"
+        + "</ol>"
+    },
+    macos: {
+      title: "macOS",
+      html: "<ol>"
+        + "<li>Open <strong>System Settings</strong> (or System Preferences) → <strong>Accessibility</strong> → <strong>Display</strong>.</li>"
+        + "<li>Turn <strong>Reduce motion</strong> <strong>Off</strong>.</li>"
+        + "<li>Reload this page.</li>"
+        + "</ol>"
+    },
+    linux: {
+      title: "Linux / ChromeOS",
+      html: "<ol>"
+        + "<li>ChromeOS: <strong>Settings</strong> → <strong>Accessibility</strong> → turn off animation-reducing options if present.</li>"
+        + "<li>Linux desktop: check your desktop accessibility panel for reduce-motion / disable animations, and set it off.</li>"
+        + "<li>Also check your browser site settings for motion preferences, then reload.</li>"
+        + "</ol>"
+    },
+    browser: {
+      title: "Browser only",
+      html: "<ol>"
+        + "<li>In Chrome / Edge: open Settings and search for <strong>motion</strong> or check that the OS reduce-motion setting is Off (browsers follow the OS).</li>"
+        + "<li>In Firefox: <strong>about:preferences</strong> → search <strong>motion</strong>, or rely on the OS setting above.</li>"
+        + "<li>Reload this page after changing the OS or browser preference.</li>"
+        + "</ol>"
+    }
+  };
 
   function done(){
     try { return sessionStorage.getItem(KEY) === "1"; } catch(e){ return false; }
@@ -3349,6 +3436,15 @@ window.addEventListener("digitalaya-device-continued", function(){
     gate.hidden = true;
     gate.setAttribute("aria-hidden", "true");
     document.body.classList.remove("motion-lock");
+  }
+  function showGuide(key){
+    const g = GUIDES[key];
+    if (!guide || !g) return;
+    guide.innerHTML = "<h3>" + g.title + "</h3>" + g.html;
+    guide.hidden = false;
+    osBtns.forEach(function(b){
+      b.classList.toggle("is-on", b.getAttribute("data-os") === key);
+    });
   }
   function show(){
     gate.hidden = false;
@@ -3375,6 +3471,9 @@ window.addEventListener("digitalaya-device-continued", function(){
   window.__digitalayaMotionSync = sync;
   window.addEventListener("digitalaya-device-continued", sync);
   if (btn) btn.addEventListener("click", unlock);
+  osBtns.forEach(function(b){
+    b.addEventListener("click", function(){ showGuide(b.getAttribute("data-os")); });
+  });
   if (mqReduce.addEventListener) mqReduce.addEventListener("change", sync);
   else if (mqReduce.addListener) mqReduce.addListener(sync);
   window.addEventListener("pageshow", sync);

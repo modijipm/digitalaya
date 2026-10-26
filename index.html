@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 
 <style id="device-lock-critical">
-/* Fail-closed until whitelist OR user continues with warning (device-continued). */
+/* Fail-closed under 1280 unless Continue (device-continued). Wide desktops never blocked by pointer quirks. */
 html:not(.device-allowed):not(.device-continued) body > :not(.device-gate):not(script):not(style){
   display:none!important;visibility:hidden!important;pointer-events:none!important;height:0!important;overflow:hidden!important;
 }
@@ -16,7 +16,6 @@ html:not(.device-allowed):not(.device-continued) #device-gate{
   align-items:center!important;justify-content:center!important;padding:1.25rem!important;
   background:#E6EBF2!important;color:#1A2436!important;text-align:center!important;overflow:auto!important;
 }
-/* Theme colors must beat media-query layout rules above */
 html[data-theme="dark"]:not(.device-allowed):not(.device-continued) .device-gate,
 html[data-theme="dark"]:not(.device-allowed):not(.device-continued) #device-gate,
 html[data-theme="dark"]:not(.device-continued) .device-gate,
@@ -25,6 +24,7 @@ html[data-theme="dark"]:not(.device-continued) #device-gate{
 }
 html.device-allowed .device-gate,
 html.device-continued .device-gate{display:none!important}
+/* Narrow layouts: ALWAYS show gate unless user pressed Continue */
 @media (max-width:1279px){
   html:not(.device-continued) body > :not(.device-gate):not(script):not(style){
     display:none!important;visibility:hidden!important;pointer-events:none!important;height:0!important;overflow:hidden!important;
@@ -34,32 +34,16 @@ html.device-continued .device-gate{display:none!important}
     align-items:center!important;justify-content:center!important;padding:1.25rem!important;
     text-align:center!important;overflow:auto!important;
   }
+  /* Even if JS marked device-allowed by mistake, keep gate on narrow until Continue */
   html.device-allowed:not(.device-continued) .device-gate,
   html.device-allowed:not(.device-continued) #device-gate{display:flex!important}
 }
-@media (hover:none) and (pointer:coarse) and (max-width:1400px){
-  html:not(.device-continued) body > :not(.device-gate):not(script):not(style){
-    display:none!important;visibility:hidden!important;pointer-events:none!important;height:0!important;overflow:hidden!important;
-  }
-  html:not(.device-continued) .device-gate,html:not(.device-continued) #device-gate{
-    display:flex!important;position:fixed!important;inset:0!important;z-index:2147483647!important;
-    align-items:center!important;justify-content:center!important;padding:1.25rem!important;
-    text-align:center!important;overflow:auto!important;
-  }
-  html.device-allowed:not(.device-continued) .device-gate,
-  html.device-allowed:not(.device-continued) #device-gate{display:flex!important}
-}
-@media (any-pointer:coarse) and (hover:none) and (max-width:1400px){
-  html:not(.device-continued) body > :not(.device-gate):not(script):not(style){
-    display:none!important;visibility:hidden!important;pointer-events:none!important;height:0!important;overflow:hidden!important;
-  }
-  html:not(.device-continued) .device-gate,html:not(.device-continued) #device-gate{
-    display:flex!important;position:fixed!important;inset:0!important;z-index:2147483647!important;
-    align-items:center!important;justify-content:center!important;padding:1.25rem!important;
-    text-align:center!important;overflow:auto!important;
-  }
-  html.device-allowed:not(.device-continued) .device-gate,
-  html.device-allowed:not(.device-continued) #device-gate{display:flex!important}
+/* Wide layouts: hide gate whenever allowed OR continued — never show for pointer quirks alone */
+@media (min-width:1280px){
+  html.device-allowed .device-gate,
+  html.device-allowed #device-gate,
+  html.device-continued .device-gate,
+  html.device-continued #device-gate{display:none!important}
 }
 html[data-theme="dark"] .device-gate,
 html[data-theme="dark"] #device-gate{
@@ -100,19 +84,19 @@ window.__digitalayaIsDesktopOk = function(){
     var vendor = String(nav.vendor || "");
     var touchPoints = Number(nav.maxTouchPoints || 0);
     var shortSide = Math.min(Number(screen.width || 0), Number(screen.height || 0));
-    var longSide = Math.max(Number(screen.width || 0), Number(screen.height || 0));
     var availShort = Math.min(Number(screen.availWidth || screen.width || 0), Number(screen.availHeight || screen.height || 0));
     var innerW = Number(window.innerWidth || 0);
     var clientW = Number((document.documentElement && document.documentElement.clientWidth) || 0);
     var outerW = Number(window.outerWidth || 0);
     var vvW = 0;
     try { if (window.visualViewport && window.visualViewport.width) vvW = Number(window.visualViewport.width); } catch (e) {}
-    var wideMQ = false, coarse = false, noHover = false, anyPointerCoarse = false, fineHover = false;
+    var wideMQ = false, coarsePrimary = false, finePointer = false, fineHover = false, anyFine = false, hoverOk = false;
     try { wideMQ = window.matchMedia("(min-width:1280px)").matches; } catch (e) {}
-    try { coarse = window.matchMedia("(hover: none) and (pointer: coarse)").matches; } catch (e) {}
-    try { noHover = window.matchMedia("(hover: none)").matches; } catch (e) {}
-    try { anyPointerCoarse = window.matchMedia("(any-pointer: coarse)").matches; } catch (e) {}
+    try { coarsePrimary = window.matchMedia("(pointer: coarse)").matches && window.matchMedia("(hover: none)").matches; } catch (e) {}
+    try { finePointer = window.matchMedia("(pointer: fine)").matches; } catch (e) {}
     try { fineHover = window.matchMedia("(hover: hover) and (pointer: fine)").matches; } catch (e) {}
+    try { anyFine = window.matchMedia("(any-pointer: fine)").matches; } catch (e) {}
+    try { hoverOk = window.matchMedia("(hover: hover)").matches; } catch (e) {}
 
     var uaDataMobile = false;
     var uaDataPlatform = "";
@@ -125,44 +109,34 @@ window.__digitalayaIsDesktopOk = function(){
 
     var blob = (ua + " " + platform + " " + vendor + " " + uaDataPlatform).toLowerCase();
 
-    var mobileRe = /iphone|ipod|ipad|android|harmonyos|openharmony|hongmeng|harmony os|huawei|honor|hmscore|hms core|petal|arkweb|kaios|kaitos|firefox os|fxos|tizen|webos|web0s|blackberry|bb10|iemobile|opera mini|opera mobi|windows phone|windows mobile|mobile|tablet|kindle|silk\/|nexus|pixel |sm-|moto |miui|redmi|tecno|infinix|realme|oneplus|vivo|oppo|sailfish|bada|meego|symbian|series40|series60|nokia|ucbrowser|samsungbrowser|huaweibrowser|crios|fxios|edgios|heytap|coloros|fban|fbav|instagram|micromessenger|wechat|; wv\)|brave\/[0-9].*mobile|mobile safari|feature phone|j2me|midp|cldc|liteos|smartisan/i;
+    var mobileRe = /iphone|ipod|ipad|android|harmonyos|openharmony|hongmeng|harmony os|huawei|honor|hmscore|hms core|petal|arkweb|kaios|kaitos|firefox os|fxos|tizen|webos|web0s|blackberry|bb10|iemobile|opera mini|opera mobi|windows phone|windows mobile|\bmobile\b|tablet|kindle|silk\/|nexus|pixel |sm-|moto |miui|redmi|tecno|infinix|realme|oneplus|vivo|oppo|sailfish|bada|meego|symbian|series40|series60|nokia|ucbrowser|samsungbrowser|huaweibrowser|crios|fxios|edgios|heytap|coloros|fban|fbav|instagram|micromessenger|wechat|; wv\)|brave\/[0-9].*mobile|mobile safari|feature phone|j2me|midp|cldc|liteos|smartisan/i;
     if (mobileRe.test(blob)) return false;
-    if (/mobi/i.test(blob)) return false;
+    if (/\bmobi\b/i.test(blob)) return false;
     if (uaDataMobile) return false;
 
     /* iPadOS “Request Desktop Website” — MacIntel + multi-touch */
     if ((platform === "MacIntel" || /macintel/i.test(platform)) && touchPoints > 1) return false;
 
-    /* Android / Harmony desktop-site spoof: Linux UA + touch + phone-sized screen or coarse primary */
-    if (/linux/i.test(ua + " " + platform + " " + uaDataPlatform) && touchPoints > 1) {
-      if (coarse || (noHover && !fineHover)) return false;
-      if (shortSide > 0 && shortSide <= 900) return false;
-      if (availShort > 0 && availShort <= 900) return false;
-    }
-
-    /* Tiny physical screens (phones) even with weird UA */
-    if (shortSide > 0 && shortSide <= 500) return false;
-    if (availShort > 0 && availShort <= 500) return false;
-
-    /* Must be a wide window */
+    /* Layout width must clearly be large */
+    var layoutW = Math.max(innerW || 0, clientW || 0, vvW || 0);
     if (!wideMQ) return false;
-    if (innerW < 1280) return false;
-    if (clientW && clientW < 1280) return false;
-    if (outerW && outerW > 0 && outerW < 1280) return false;
-    if (vvW && vvW < 1280) return false;
+    if (layoutW < 1280) return false;
+    if (innerW > 0 && innerW < 1280) return false;
+    if (clientW > 0 && clientW < 1280) return false;
 
-    /* Phone-like input: no mouse hover / coarse primary only — block.
-       Touchscreen laptops that ALSO have fine hover are allowed. */
-    if (coarse) return false;
-    if (!fineHover) return false;
+    /* Phone-sized physical screens with mobile-like touch */
+    if (shortSide > 0 && shortSide <= 500 && touchPoints > 1) return false;
+    if (availShort > 0 && availShort <= 500 && touchPoints > 1) return false;
+
+    /* Coarse primary phone/tablet input without fine pointer → block.
+       Touchscreen laptops/PCs with fine pointer or hover + width>=1280 → allow. */
+    if (coarsePrimary && !(anyFine || finePointer || fineHover || hoverOk)) return false;
 
     return true;
   } catch (e) {
     return false;
   }
 };
-
-
 
   try {
     var continued = false;
@@ -816,14 +790,74 @@ html.device-continued.android-wake .pillars.pillars-cascade > .pillar.reveal-for
 .pledge-form{display:grid;gap:.75rem;max-width:28rem}
 .pledge-form label{font-weight:700;font-size:.95rem}
 
-/* ===== DEVICE GATE (strict phones/tablets + viewports under 1280px) ===== */
-/* default lock handled by #device-lock-critical; .device-gate shown until device-allowed */
+
+/* ===== UPGRADE: icons, wipes, help fab, content-visibility ===== */
+.ico{width:28px;height:28px;color:var(--teal);display:inline-block;vertical-align:middle;flex:0 0 auto}
+.ico--lg{width:36px;height:36px}
+.ico--sm{width:22px;height:22px}
+.milestone__ico,.pillar__ico,.bento__ico,.svc__ico,.flip__ico{display:grid;place-items:center;width:40px;height:40px;border-radius:12px;background:color-mix(in srgb,var(--teal) 12%,var(--bg-elev));color:var(--teal);margin-bottom:.55rem;transition:transform .35s var(--ease-out)}
+.milestone.is-hot .milestone__ico,.pillar:hover .pillar__ico,.pillar:focus-within .pillar__ico,.card.is-in .bento__ico{transform:scale(1.08) rotate(-4deg);color:var(--india-green)}
+.pillar__ico{color:var(--orange-bright)}
+.svc__ico{color:var(--india-green)}
+.flip__ico{width:48px;height:48px;margin:0 auto .5rem;background:color-mix(in srgb,var(--saffron) 16%,var(--bg-elev));color:var(--orange-bright)}
+.flip.is-flipped .flip__ico{transform:scale(.9)}
+@keyframes icoPop{0%{transform:scale(.4) rotate(-18deg);opacity:0}70%{transform:scale(1.12) rotate(4deg);opacity:1}100%{transform:scale(1) rotate(0)}}
+.milestone.is-hot .milestone__ico,.js .pillar.is-in .pillar__ico{animation:icoPop .55s var(--ease-out) both}
+.hero-scene{width:100%;max-width:420px;color:var(--teal);overflow:visible}
+.hero-scene .drift{animation:hdrift 7s ease-in-out infinite alternate;transform-origin:center;will-change:transform}
+.hero-scene .drift-2{animation-duration:9s;animation-delay:-2s}
+.hero-scene .drift-3{animation-duration:11s;animation-delay:-4s}
+.hero-scene .pulse-ring{animation:pring 2.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes hdrift{from{transform:translate(0,0)}to{transform:translate(6px,-8px)}}
+@keyframes pring{0%{transform:scale(.85);opacity:.55}100%{transform:scale(1.35);opacity:0}}
+.hero-scene .draw-stroke{stroke-dasharray:120;stroke-dashoffset:120;animation:drawStroke .9s var(--ease-out) .35s forwards}
+@keyframes drawStroke{to{stroke-dashoffset:0}}
+.stack-layers-art{width:100%;max-height:100%;display:block}
+.stack-layers-art .slayer{opacity:.35;transition:opacity .45s var(--ease),transform .45s var(--ease);transform:translateY(4px)}
+.stack-visual.is-active .stack-layers-art .slayer.is-lit{opacity:1;transform:none}
+.stack-layers-art .slayer:nth-child(1).is-lit{color:var(--teal)}
+.stack-layers-art .slayer:nth-child(2).is-lit{color:var(--saffron)}
+.stack-layers-art .slayer:nth-child(3).is-lit{color:var(--orange-bright)}
+.stack-layers-art .slayer:nth-child(4).is-lit{color:var(--india-green)}
+.vision-road{width:100%;max-width:640px;margin:1.25rem auto 0;display:block;color:var(--teal)}
+.vision-road #vision-path{stroke-dasharray:1;stroke-dashoffset:1;stroke-linecap:round}
+.upi-stage svg .bank-bldg{transition:transform .4s var(--ease)}
+.upi-stage.is-step-2 .bank-bldg,.upi-stage.is-step-3 .bank-bldg{transform:translateY(-2px)}
+#upi-packet{transition:transform .7s cubic-bezier(.22,1.2,.36,1)}
+.js .reveal--wipe:not(.is-in){opacity:1;clip-path:inset(0 0 100% 0);transform:none;transition:clip-path .7s var(--ease-out)}
+.js .reveal--wipe.is-in{clip-path:inset(0 0 0 0)}
+.js .reveal--pop:not(.is-in){transform:scale(.82);opacity:0}
+.js .reveal--pop.is-in{animation:scalePop .55s cubic-bezier(.22,1.35,.36,1) both}
+@keyframes scalePop{0%{transform:scale(.82);opacity:0}70%{transform:scale(1.04);opacity:1}100%{transform:scale(1);opacity:1}}
+.help-fab{position:fixed;left:max(.65rem,env(safe-area-inset-left));bottom:calc(1.15rem + env(safe-area-inset-bottom));z-index:700;width:48px;height:48px;border-radius:50%;border:1px solid var(--border);background:var(--bg-card);color:var(--text);font-weight:800;font-size:1.15rem;cursor:pointer;display:none;place-items:center;box-shadow:var(--shadow);touch-action:manipulation}
+@media(max-width:899px),(hover:none){.help-fab{display:grid}.kbd-hint{display:none!important}}
+@media(min-width:900px) and (hover:hover) and (pointer:fine){.help-fab{display:none}}
+#journey,#stack,#impact,#toolkit,#vision,#upi-flow{content-visibility:auto;contain-intrinsic-size:1px 800px}
+.section{scroll-margin-top:calc(var(--nav-h) + .5rem)}
+@media(max-width:767px){
+  .hero-scene .drift-3,.hero-scene .pulse-ring:nth-of-type(n+3){display:none}
+  .hero-scene{max-width:300px}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero-scene .drift,.hero-scene .pulse-ring,.hero-scene .draw-stroke{animation:none!important}
+  .js .reveal--wipe:not(.is-in),.js .reveal--wipe.is-in{clip-path:none;opacity:1}
+  .js .reveal--pop.is-in{animation:none}
+  .milestone.is-hot .milestone__ico,.js .pillar.is-in .pillar__ico{animation:none}
+}
+.pledge-stamp.is-stamp{animation:stampin .55s cubic-bezier(.22,1.4,.36,1) both}
+::selection{background:color-mix(in srgb,var(--saffron) 45%,transparent);color:var(--text)}
+html{scrollbar-color:var(--teal) var(--bg-elev)}
+html::-webkit-scrollbar{width:10px;height:10px}
+html::-webkit-scrollbar-thumb{background:var(--teal);border-radius:8px;border:2px solid var(--bg)}
+html::-webkit-scrollbar-track{background:var(--bg-elev)}
+.quiz__opts button.is-correct{animation:scalePop .4s var(--ease-out)}
+.quiz__opts button.is-wrong{animation:shake .4s var(--ease)}
+
+/* ===== DEVICE GATE (strict under 1280px; Continue unlocks) ===== */
 html.device-blocked body,
 body.gate-active{overflow:hidden!important}
 html.device-blocked body > :not(.device-gate):not(script),
 body.gate-active > :not(.device-gate):not(script){visibility:hidden!important;pointer-events:none!important}
-html.device-blocked .device-gate,
-body.gate-active .device-gate,
 .device-gate:not([hidden]){display:flex;position:fixed;inset:0;z-index:100000;align-items:center;justify-content:center;padding:max(1.25rem,env(safe-area-inset-top)) max(1.25rem,env(safe-area-inset-right)) max(1.25rem,env(safe-area-inset-bottom)) max(1.25rem,env(safe-area-inset-left));background:var(--bg);color:var(--text);text-align:center}
 html:not(.device-blocked) .device-gate[hidden]{display:none!important}
 html.device-blocked .device-gate[hidden]{display:flex!important}
@@ -838,42 +872,28 @@ html.device-blocked .device-gate[hidden]{display:flex!important}
 .device-gate__actions .btn{width:100%;min-height:44px;justify-content:center}
 .device-gate__hint{margin:0;color:var(--muted);font-size:.9rem;line-height:1.45}
 html[data-theme="dark"] .device-gate__warn{background:rgba(255,153,51,.22);background:color-mix(in srgb,var(--saffron) 22%,#152033);color:#E8EEF7;border-color:#FF9933}
-
-@media(max-width:1279px){
-  .device-gate{display:flex;position:fixed;inset:0;z-index:100000;align-items:center;justify-content:center;padding:max(1.25rem,env(safe-area-inset-top)) max(1.25rem,env(safe-area-inset-right)) max(1.25rem,env(safe-area-inset-bottom)) max(1.25rem,env(safe-area-inset-left));background:var(--bg);color:var(--text);text-align:center}
-  .device-gate[hidden]{display:flex!important}
-}
-@media(min-width:1280px){
-  html.device-allowed:not(.device-blocked) .device-gate,
+@media (max-width:1279px){
+  html:not(.device-continued) .device-gate{display:flex!important}
   html.device-continued .device-gate{display:none!important}
-  html:not(.device-allowed):not(.device-continued) .device-gate{display:flex!important}
+}
+@media (min-width:1280px){
+  html.device-allowed .device-gate,
+  html.device-continued .device-gate{display:none!important}
 }
 
-/* ===== MOTION GATE (all screens; after device gate on phones) ===== */
-.motion-gate{display:none}
-html.device-blocked .motion-gate,
-body.gate-active .motion-gate{display:none!important}
-body.motion-lock:not(.gate-active){overflow:hidden!important}
-body.motion-lock:not(.gate-active) > :not(.motion-gate):not(script){visibility:hidden!important;pointer-events:none!important}
+/* ===== MOTION BANNER (non-blocking; after device gate) ===== (all screens; after device gate on phones) ===== */
+.motion-banner{display:none;position:fixed;left:max(.75rem,env(safe-area-inset-left));right:max(.75rem,env(safe-area-inset-right));bottom:max(.75rem,env(safe-area-inset-bottom));z-index:900;max-width:28rem;margin-inline:auto;pointer-events:auto}
+.motion-banner.is-on{display:block}
+.motion-banner__card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:.85rem 1rem;display:flex;gap:.75rem;align-items:flex-start;position:relative}
+.motion-banner__card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);border-radius:12px 12px 0 0;pointer-events:none}
+.motion-banner p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.45;flex:1}
+.motion-banner__dismiss{flex:0 0 auto;min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--bg-elev);color:var(--text);font-weight:700;cursor:pointer;touch-action:manipulation}
+.motion-banner__dismiss:hover,.motion-banner__dismiss:focus-visible{border-color:var(--india-green);color:var(--india-green)}
+/* Legacy motion-gate markup kept hidden permanently (non-blocking banner replaces it) */
+.motion-gate{display:none!important}
+body.motion-lock{overflow:visible!important}
+body.motion-lock > :not(.motion-gate):not(script){visibility:visible!important;pointer-events:auto!important}
 .motion-gate[hidden]{display:none!important}
-html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([hidden]){display:flex;position:fixed;inset:0;z-index:100001;align-items:center;justify-content:center;padding:max(1.25rem,env(safe-area-inset-top)) max(1.25rem,env(safe-area-inset-right)) max(1.25rem,env(safe-area-inset-bottom)) max(1.25rem,env(safe-area-inset-left));background:var(--bg);color:var(--text)}
-.motion-gate__card{max-width:32rem;width:100%;max-height:min(90dvh,720px);overflow:auto;-webkit-overflow-scrolling:touch;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.5rem 1.25rem 1.35rem;text-align:left;position:relative}
-.motion-gate__card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);pointer-events:none}
-.motion-gate__mark{width:48px;height:48px;margin:0 0 .9rem;border-radius:14px;background:linear-gradient(180deg,#FF9933 0 33.333%,#FFFFFF 33.333% 66.666%,#138808 66.666% 100%);display:grid;place-items:center}
-.motion-gate__mark svg{width:26px;height:26px;fill:#1A2436}
-.motion-gate h2{font-size:clamp(1.2rem,4.5vw,1.4rem);margin:0 0 .65rem;letter-spacing:-.02em}
-.motion-gate p{margin:0 0 .9rem;color:var(--muted);font-size:1rem;line-height:1.55}
-.motion-gate__notice{margin:0 0 1rem;padding:.75rem .9rem;border-radius:10px;border:1px solid var(--saffron);background:rgba(255,153,51,.18);background:color-mix(in srgb,var(--saffron) 18%,var(--bg-card));color:var(--text);font-size:.95rem;line-height:1.5}
-.motion-gate__actions{display:flex;flex-direction:column;gap:.65rem;margin-top:1.1rem}
-.motion-gate__actions .btn{width:100%;min-height:44px;justify-content:center;white-space:normal}
-.motion-gate__note{margin:0 0 .75rem;padding:.65rem .8rem;border-radius:10px;border:1px solid var(--border);background:var(--bg-elev);color:var(--muted);font-size:.92rem;line-height:1.5}
-.motion-gate__os{display:grid;grid-template-columns:1fr 1fr;gap:.65rem;margin-top:.85rem}
-.motion-gate__os button{min-height:48px;padding:.7rem .85rem;border-radius:12px;border:1px solid var(--border);background:var(--bg-elev);color:var(--text);font-weight:700;font-size:.95rem;cursor:pointer;text-align:left;touch-action:manipulation}
-.motion-gate__os button:hover,.motion-gate__os button:focus-visible{border-color:var(--india-green);color:var(--india-green)}
-.motion-gate__guide ol{margin:.4rem 0 1rem 1.15rem;color:var(--muted);font-size:.98rem;line-height:1.55}
-.motion-gate__guide li{margin:.35rem 0}
-.motion-gate__guide strong{color:var(--text)}
-.motion-gate [hidden]{display:none!important}
 </style></head><body>
 
 <div class="device-gate" id="device-gate" role="presentation">
@@ -890,62 +910,59 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   </div>
 </div>
 
-<div class="motion-gate" id="motion-gate" hidden>
-  <div class="motion-gate__card" id="motion-gate-card" role="dialog" aria-modal="true" aria-labelledby="motion-gate-title" tabindex="-1">
-    <div class="motion-gate__mark" aria-hidden="true"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 6 L26 14 V26 H20 V18 H12 V26 H6 V14 Z"/></svg></div>
-
-    <div id="motion-step-1" class="motion-step">
-      <h2 id="motion-gate-title">Check motion settings first</h2>
-      <p>Before you use DigitAlaya, make sure your phone, computer, or browser does not have a setting that reduces or removes animations or motion. If that setting is on, turn it off so this page can show its animations correctly.</p>
-      <p id="motion-rm-notice" class="motion-gate__notice" hidden>This browser is currently reporting that reduced motion is active. Turn that setting off, then continue.</p>
-      <p class="motion-gate__note">If you continue with reduce-motion still on, you will not see all animations, the page may look incomplete, and you might hit bugs or glitches.</p>
-      <div class="motion-gate__actions">
-        <button type="button" class="btn" id="motion-btn-off" data-motion-go="2">I do not have a reduce-motion setting turned on</button>
-        <button type="button" class="btn btn--ghost" id="motion-btn-on" data-motion-go="3">I have a reduce-motion setting turned on</button>
-        <button type="button" class="btn btn--ghost" id="motion-btn-anyway-1" data-motion-unlock>Continue anyway (limited / may glitch)</button>
-      </div>
-    </div>
-
-    <div id="motion-step-2" class="motion-step" hidden>
-      <h2 id="motion-step-2-title">Are you sure?</h2>
-      <p>There might still be a reduce-motion or remove-animations setting that you are not aware of, or that is on by default on your system.</p>
-      <p class="motion-gate__note">If motion is still reduced, you will miss animations and the full experience, and may see bugs or glitches.</p>
-      <div class="motion-gate__actions">
-        <button type="button" class="btn" id="motion-btn-sure" data-motion-unlock>I am sure it is off. Continue to DigitAlaya</button>
-        <button type="button" class="btn btn--ghost" id="motion-btn-help" data-motion-go="3">Help me check or change settings</button>
-        <button type="button" class="btn btn--ghost" id="motion-btn-anyway-2" data-motion-unlock>Continue anyway (limited / may glitch)</button>
-      </div>
-    </div>
-
-    <div id="motion-step-3" class="motion-step" hidden>
-      <h2 id="motion-step-3-title">Which system are you on?</h2>
-      <p>Pick your operating system. We will show short steps to turn off settings that strip motion or break animations on this page.</p>
-      <p class="motion-gate__note">Pick the system you are using now. On phones, Android and iPhone steps are listed first.</p>
-      <div class="motion-gate__os" role="group" aria-label="Operating system">
-        <button type="button" data-os="android">Android</button>
-        <button type="button" data-os="ios">iPhone / iPad</button>
-        <button type="button" data-os="windows">Windows</button>
-        <button type="button" data-os="macos">macOS</button>
-        <button type="button" data-os="linux">Linux or ChromeOS</button>
-        <button type="button" data-os="browser">Not sure (browser only)</button>
-      </div>
-      <div class="motion-gate__actions">
-        <button type="button" class="btn btn--ghost" data-motion-go="1">Back</button>
-      </div>
-    </div>
-
-    <div id="motion-step-4" class="motion-step motion-gate__guide" hidden>
-      <h2 id="motion-step-4-title">Turn motion settings off</h2>
-      <div id="motion-guide-body"></div>
-      <p class="motion-gate__note">You can continue without changing settings, but animations may be missing, the page may feel incomplete, and glitches are more likely.</p>
-      <div class="motion-gate__actions">
-        <button type="button" class="btn" id="motion-btn-done" data-motion-unlock>I turned the settings off. Continue</button>
-        <button type="button" class="btn btn--ghost" id="motion-btn-anyway-4" data-motion-unlock>Continue anyway (limited / may glitch)</button>
-        <button type="button" class="btn btn--ghost" data-motion-go="3">Back</button>
-      </div>
-    </div>
+<div class="motion-banner" id="motion-banner" role="status" aria-live="polite" hidden>
+  <div class="motion-banner__card">
+    <p id="motion-banner-text">Reduced motion is on in your system or browser. Animations will stay calm; all features still work. You can turn reduce-motion off in accessibility settings for the full motion set.</p>
+    <button type="button" class="motion-banner__dismiss" id="motion-banner-dismiss" aria-label="Dismiss motion notice">OK</button>
   </div>
 </div>
+<div class="motion-gate" id="motion-gate" hidden aria-hidden="true">
+  <!-- Legacy multi-step motion gate kept inert; non-blocking banner replaces it -->
+  <div class="motion-gate__card" id="motion-gate-card" tabindex="-1">
+    <div id="motion-step-1" class="motion-step"></div>
+    <div id="motion-step-2" class="motion-step" hidden></div>
+    <div id="motion-step-3" class="motion-step" hidden></div>
+    <div id="motion-step-4" class="motion-step" hidden></div>
+    <div id="motion-rm-notice" hidden></div>
+    <div id="motion-guide-body"></div>
+  </div>
+</div>
+
+<svg xmlns="http://www.w3.org/2000/svg" style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-phone" viewBox="0 0 48 80"><rect x="8" y="4" width="32" height="72" rx="6" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="12" width="20" height="48" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="24" cy="70" r="3" fill="currentColor"/></symbol>
+    <symbol id="i-tick" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M7 12l3.5 3.5L17 8" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-rupee" viewBox="0 0 24 24"><path d="M7 6h10M7 10h10M9 6c2.5 0 4 1.5 4 4s-1.5 4-4 4H8l6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-id" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="9" cy="12" r="2.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M14 10h5M14 14h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-health" viewBox="0 0 24 24"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5c2 0 4-.8 6-.8S14 5 16 5v14c-2 0-4-.8-6-.8S6 19 4 19V5zM12 4.2V18.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-tower" viewBox="0 0 24 24"><path d="M12 3v4M8 21h8M10 21V11l2-4 2 4v10M7 8c1.5-2 8.5-2 10 0M5.5 11c2-3 11-3 13 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-rocket" viewBox="0 0 24 24"><path d="M12 3c3 2 5 6 5 10l-2 1-3-1-3 1-2-1c0-4 2-8 5-10zM9 14l-2 5 5-2 5 2-2-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="9" r="1.5" fill="currentColor"/></symbol>
+    <symbol id="i-qr" viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="13" y="3" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="13" width="8" height="8" rx="1" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M13 13h3v3h-3zM18 13h3v2M13 18h2v3M17 17h4v4" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-apps" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="3" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="3" y="14" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><rect x="14" y="14" width="7" height="7" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8h14v-8M2 20h20M9 14v4M15 14v4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6l8-3z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-bars" viewBox="0 0 24 24"><path d="M5 18V12M10 18V8M15 18V5M20 18v-7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></symbol>
+    <symbol id="i-signal" viewBox="0 0 24 24"><path d="M4 18h2V14H4zm5 0h2V10H9zm5 0h2V7h-2zm5 0h2V4h-2z" fill="currentColor"/></symbol>
+    <symbol id="i-kiosk" viewBox="0 0 24 24"><rect x="6" y="3" width="12" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M9 20h6M12 17v3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="9" y="6" width="6" height="5" rx="1" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+    <symbol id="i-gov" viewBox="0 0 24 24"><path d="M3 10l9-5 9 5M5 10v8h14v-8M4 20h16M8 13v3M12 13v3M16 13v3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+    <symbol id="i-box" viewBox="0 0 24 24"><path d="M3 8l9-4 9 4-9 4-9-4zM3 8v8l9 4 9-4V8M12 12v8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chip" viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5 7l2 2M17 7l2-2M5 17l2-2M17 17l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-laptop" viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="11" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M2 18h20M10 9.5a2 2 0 104 0 2 2 0 00-4 0zm4.5 2.5l1.5 1.5M9.5 12L8 13.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2L4 14h7l-1 8 10-14h-7l0-6z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M8 11V8a4 4 0 018 0v3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="16" r="1.5" fill="currentColor"/></symbol>
+    <symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 007.5.5l2-2a5 5 0 00-7-7l-1.2 1.2M14 11a5 5 0 00-7.5-.5l-2 2a5 5 0 007 7l1.2-1.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M16 8l2-3 2 1-1 3" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="19" cy="5" r="2.5" fill="none" stroke="currentColor" stroke-width="1.4"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="14" r="4" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M11 12l9-5v3l-3 1.5V15l-2-.5V12l-3 1.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-phone1930" viewBox="0 0 24 24"><rect x="7" y="2" width="10" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><text x="12" y="14" text-anchor="middle" font-size="5.5" font-weight="800" fill="currentColor">1930</text></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-10a4 4 0 017-2.5A4 4 0 0119 10c0 5.5-7 10-7 10z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M16 16l5 5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-aadhaar" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M5 20c1.5-4 12.5-4 14 0" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><rect x="4" y="3" width="16" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol>
+    <symbol id="i-farm" viewBox="0 0 24 24"><path d="M4 18c2-6 6-10 8-10s6 4 8 10M12 8V4M9 6h6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-gem" viewBox="0 0 24 24"><path d="M6 9l6-5 6 5-6 11L6 9zM6 9h12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></symbol>
+    <symbol id="i-net" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="5" cy="7" r="2" fill="currentColor" opacity=".7"/><circle cx="19" cy="7" r="2" fill="currentColor" opacity=".7"/><circle cx="5" cy="17" r="2" fill="currentColor" opacity=".7"/><circle cx="19" cy="17" r="2" fill="currentColor" opacity=".7"/><path d="M7 8l3 3M17 8l-3 3M7 16l3-3M17 16l-3-3" stroke="currentColor" stroke-width="1.4"/></symbol>
+  </defs>
+</svg>
+
 <a class="skip" href="#main">Skip to content</a>
 <div id="scroll-progress" aria-hidden="true"></div>
 <header class="nav" id="site-nav">
@@ -1017,8 +1034,8 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   <div class="wrap hero__grid">
     <div class="hero__content reveal-stagger">
       <p class="eyebrow reveal reveal--soft">Digital India · 2015 → 2026</p>
-      <h1 class="reveal reveal--pop">Digit<span class="grad">Alaya</span>: where Bharat’s digital public goods live</h1>
-      <p class="lead reveal reveal--rise" style="margin-top:1rem">An original student page for Web Wizards (AAGAAZ 2026): the verified story of Digital India: payments, identity, health, and a safer digital citizen.</p>
+      <h1 class="reveal reveal--pop">Digit<span class="grad">Alaya</span>: Bharat’s digital public goods</h1>
+      <p class="lead reveal reveal--rise" style="margin-top:1rem">Web Wizards AAGAAZ 2026: verified Digital India story for students.</p>
       <div class="hero__ctas reveal reveal--soft">
         <a class="btn mag" href="#journey">Start the journey</a>
         <a class="btn btn--ghost mag" href="#toolkit">Take the Quiz</a>
@@ -1029,12 +1046,28 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
         <div class="stat"><div class="stat__n" data-count="93" data-suffix=" Cr+" data-locale="en-IN">0</div><div class="stat__l">ABHA accounts (Jul 2026)</div></div>
       </div>
     </div>
-    <div class="hero__art reveal reveal--fade" aria-hidden="true">
+    <div class="hero__art reveal reveal--pop" aria-hidden="false">
       <div class="hero__art-clip">
         <div class="hero__art-parallax" data-speed="auto" data-lag="0.6">
-          <svg class="network" id="net" viewBox="0 0 400 400" role="img"><title>Abstract digital network</title>
-            <g fill="none" stroke="currentColor" stroke-width="1.2" opacity=".35" id="net-edges"></g>
-            <g id="net-nodes"></g>
+          <svg class="hero-scene network" id="net" viewBox="0 0 400 400" role="img" aria-label="Phone linked to digital public services"><title>Digital public services network</title>
+            <g fill="none" stroke="currentColor" stroke-width="1.2" opacity=".28" id="net-edges">
+              <line x1="200" y1="210" x2="70" y2="90"/><line x1="200" y1="210" x2="330" y2="90"/>
+              <line x1="200" y1="210" x2="60" y2="280"/><line x1="200" y1="210" x2="340" y2="280"/>
+              <line x1="200" y1="210" x2="200" y2="60"/>
+            </g>
+            <g id="net-nodes">
+              <g class="drift" style="color:var(--teal)">
+                <rect x="158" y="150" width="84" height="150" rx="14" fill="var(--bg-card)" stroke="currentColor" stroke-width="2.5"/>
+                <rect x="170" y="168" width="60" height="100" rx="4" fill="var(--bg-elev)" stroke="currentColor" stroke-width="1.2"/>
+                <circle cx="200" cy="285" r="6" fill="currentColor" opacity=".35"/>
+                <g transform="translate(188 200)" style="color:var(--india-green)"><circle cx="12" cy="12" r="14" fill="color-mix(in srgb,var(--india-green) 18%,transparent)" class="pulse-ring"/><use href="#i-tick" width="24" height="24"/></g>
+              </g>
+              <g class="drift drift-2" transform="translate(46 58)" style="color:var(--saffron)"><circle cx="24" cy="24" r="22" fill="var(--bg-card)" stroke="currentColor" stroke-width="2"/><use href="#i-rupee" x="12" y="12" width="24" height="24"/></g>
+              <g class="drift drift-3" transform="translate(306 58)" style="color:var(--teal)"><circle cx="24" cy="24" r="22" fill="var(--bg-card)" stroke="currentColor" stroke-width="2"/><use href="#i-id" x="12" y="12" width="24" height="24"/></g>
+              <g class="drift" transform="translate(176 28)" style="color:var(--india-green)"><circle cx="24" cy="24" r="20" fill="var(--bg-card)" stroke="currentColor" stroke-width="2"/><use href="#i-book" x="12" y="12" width="24" height="24"/></g>
+              <g class="drift drift-2" transform="translate(36 248)" style="color:var(--orange-bright)"><circle cx="24" cy="24" r="22" fill="var(--bg-card)" stroke="currentColor" stroke-width="2"/><g transform="translate(12 12)" style="color:var(--orange-bright)"><path d="M12 4v16M4 12h16" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></g></g>
+              <g class="drift drift-3" transform="translate(316 248)" style="color:var(--teal-bright)"><circle cx="24" cy="24" r="22" fill="var(--bg-card)" stroke="currentColor" stroke-width="2"/><use href="#i-tower" x="12" y="12" width="24" height="24"/></g>
+            </g>
           </svg>
         </div>
       </div>
@@ -1045,7 +1078,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   <div class="section-deco" data-speed="0.2" data-lag="0.45" aria-hidden="true"></div>
   <div class="wrap">
     <p class="eyebrow reveal reveal--soft">Mission</p>
-    <p class="mission-words reveal reveal--rise" id="mission-words">Digital India set out to transform India into a knowledge economy and a digitally empowered society: connecting villages, simplifying governance, and building open digital public infrastructure that millions can trust every day.</p>
+    <p class="mission-words reveal reveal--rise" id="mission-words">Connecting villages, simplifying governance, and building trusted digital public infrastructure.</p>
   </div>
 </section>
 <section class="section story-scale" id="journey" data-hue="185">
@@ -1053,7 +1086,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   <div class="wrap story-content">
     <p class="eyebrow reveal reveal--soft">Timeline</p>
     <h2 class="reveal reveal--pop">Journey 2015 → 2026</h2>
-    <p class="lead reveal reveal--rise">Milestones drawn from public sources. The line fills as you scroll.</p>
+    <p class="lead reveal reveal--rise">Verified milestones. The line fills as you scroll.</p>
     <div class="journey-parallax-band" data-speed="0.9" data-lag="0.5" aria-hidden="true"></div>
     <div class="journey-track reveal reveal--fade">
       <svg class="journey-svg" viewBox="0 0 1000 40" aria-hidden="true" data-speed="0.55" data-lag="0.35">
@@ -1061,12 +1094,12 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
         <path class="journey-line journey-line--draw" id="journey-draw" pathLength="1" d="M20 20 H980"/>
       </svg>
       <div class="milestones reveal-stagger">
-        <article class="milestone"><time datetime="2015-07">Jul 2015</time><h3>Digital India launched</h3><p>Programme begins (MeitY / PIB). Eleven years completed in 2026.</p></article>
-        <article class="milestone"><time datetime="2016-08-25">25 Aug 2016</time><h3>UPI launches</h3><p>Unified Payments Interface goes live, later scales to crores of payments (NPCI).</p></article>
-        <article class="milestone"><time datetime="2017">2017</time><h3>UMANG opens</h3><p>Starts with 166 services; grows to 2,572 by Jun 2026.</p></article>
-        <article class="milestone"><time>2015 → 2026</time><h3>Jan Dhan expands</h3><p>14.72 crore accounts (Mar 2015) → 59.09 crore (Aug 2026); deposits ~₹3.17 lakh crore.</p></article>
-        <article class="milestone"><time datetime="2021">2021</time><h3>CoWIN at scale</h3><p>Platform later reported managing over 220 crore vaccine doses.</p></article>
-        <article class="milestone"><time datetime="2026-07">Jul-Aug 2026</time><h3>UPI record months</h3><p>2,366 crore txns in Jul 2026; ~24.51 billion in Aug 2026 (NPCI / media).</p></article>
+        <article class="milestone"><div class="milestone__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-rocket"/></svg></div><time datetime="2015-07">Jul 2015</time><h3>Digital India launched</h3><p>Programme begins (MeitY / PIB). Eleven years in 2026.</p></article>
+        <article class="milestone"><div class="milestone__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-qr"/></svg></div><time datetime="2016-08-25">25 Aug 2016</time><h3>UPI launches</h3><p>UPI goes live and later scales to crores of payments (NPCI).</p></article>
+        <article class="milestone"><div class="milestone__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-apps"/></svg></div><time datetime="2017">2017</time><h3>UMANG opens</h3><p>166 services at start; 2,572 by Jun 2026.</p></article>
+        <article class="milestone"><div class="milestone__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bank"/></svg></div><time>2015 → 2026</time><h3>Jan Dhan expands</h3><p>14.72 crore accounts (Mar 2015) → 59.09 crore (Aug 2026); deposits ~₹3.17 lakh crore.</p></article>
+        <article class="milestone"><div class="milestone__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-shield"/></svg></div><time datetime="2021">2021</time><h3>CoWIN at scale</h3><p>Later reported managing over 220 crore vaccine doses.</p></article>
+        <article class="milestone"><div class="milestone__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bars"/></svg></div><time datetime="2026-07">Jul-Aug 2026</time><h3>UPI record months</h3><p>2,366 Cr txns Jul 2026; ~24.51 Bn Aug 2026 (NPCI).</p></article>
       </div>
     </div>
   </div>
@@ -1074,17 +1107,17 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
 <section class="section" id="pillars" data-hue="175">
   <div class="wrap">
     <p class="eyebrow reveal reveal--soft">Foundation</p>
-    <h2 class="reveal reveal--pop">Nine pillars of Digital India</h2>
+    <h2 class="reveal reveal--pop">Nine pillars</h2>
     <div class="pillars reveal-stagger pillars-cascade">
-      <article class="pillar card spot"><div class="pillar__n">PILLAR 01</div><h3>Broadband Highways</h3><p>Building high-speed connectivity as a national utility.</p><p><small>BharatNet: &gt;2.15 lakh gram panchayats connected (~97%), ~7 lakh km fibre (Jan 2026).</small></p></article>
-      <article class="pillar card spot"><div class="pillar__n">PILLAR 02</div><h3>Universal Access to Mobile Connectivity</h3><p>Closing coverage gaps so mobiles become the first computer.</p><p><small>Internet subscribers ~1.11 billion (Jun 2026, TRAI).</small></p></article>
-      <article class="pillar card spot"><div class="pillar__n">PILLAR 03</div><h3>Public Internet Access Programme</h3><p>Shared access points for people without personal devices.</p><p><small>Common Service Centres: &gt;6.5 lakh.</small></p></article>
-      <article class="pillar card spot"><div class="pillar__n">PILLAR 04</div><h3>e-Governance</h3><p>Reforming government processes for digital delivery.</p><p><small>UMANG: 166 services (2017) → 2,572 (Jun 2026).</small></p></article>
-      <article class="pillar card spot"><div class="pillar__n">PILLAR 05</div><h3>e-Kranti</h3><p>Electronic delivery of services across domains.</p><p><small>GeM cumulative transactions &gt;₹18.4 lakh crore (Jun 2026).</small></p></article>
-      <article class="pillar card spot"><div class="pillar__n">PILLAR 06</div><h3>Information for All</h3><p>Open, timely public information online.</p><p><small>DIKSHA: &gt;2 crore registered users (Mar 2026).</small></p></article>
-      <article class="pillar card spot"><div class="pillar__n">PILLAR 07</div><h3>Electronics Manufacturing</h3><p>Growing domestic electronics production capacity.</p><p><small>Output ₹1.9 lakh crore (FY2014-15) → ~₹12 lakh crore (Mar 2026).</small></p></article>
-      <article class="pillar card spot"><div class="pillar__n">PILLAR 08</div><h3>IT for Jobs</h3><p>Skills and jobs powered by IT and digital literacy.</p><p><small>PMGDISHA: &gt;6.39 crore rural citizens trained.</small></p></article>
-      <article class="pillar card spot"><div class="pillar__n">PILLAR 09</div><h3>Early Harvest Programmes</h3><p>Quick-win digital services that build public trust.</p><p><small>Smart Cities Mission covered 100 cities.</small></p></article>
+      <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-tower"/></svg></div><div class="pillar__n">PILLAR 01</div><h3>Broadband Highways</h3><p>High-speed connectivity as a national utility.</p><p><small>BharatNet: &gt;2.15 lakh gram panchayats connected (~97%), ~7 lakh km fibre (Jan 2026).</small></p></article>
+      <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-signal"/></svg></div><div class="pillar__n">PILLAR 02</div><h3>Universal Access to Mobile Connectivity</h3><p>Closing gaps so mobiles become the first computer.</p><p><small>Internet subscribers ~1.11 billion (Jun 2026, TRAI).</small></p></article>
+      <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-kiosk"/></svg></div><div class="pillar__n">PILLAR 03</div><h3>Public Internet Access Programme</h3><p>Shared access for people without personal devices.</p><p><small>Common Service Centres: &gt;6.5 lakh.</small></p></article>
+      <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-gov"/></svg></div><div class="pillar__n">PILLAR 04</div><h3>e-Governance</h3><p>Government processes rebuilt for digital delivery.</p><p><small>UMANG: 166 services (2017) → 2,572 (Jun 2026).</small></p></article>
+      <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-box"/></svg></div><div class="pillar__n">PILLAR 05</div><h3>e-Kranti</h3><p>Electronic service delivery across domains.</p><p><small>GeM cumulative transactions &gt;₹18.4 lakh crore (Jun 2026).</small></p></article>
+      <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-book"/></svg></div><div class="pillar__n">PILLAR 06</div><h3>Information for All</h3><p>Open, timely public information online.</p><p><small>DIKSHA: &gt;2 crore registered users (Mar 2026).</small></p></article>
+      <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-chip"/></svg></div><div class="pillar__n">PILLAR 07</div><h3>Electronics Manufacturing</h3><p>Growing domestic electronics production capacity.</p><p><small>Output ₹1.9 lakh crore (FY2014-15) → ~₹12 lakh crore (Mar 2026).</small></p></article>
+      <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-laptop"/></svg></div><div class="pillar__n">PILLAR 08</div><h3>IT for Jobs</h3><p>Skills and jobs powered by IT literacy.</p><p><small>PMGDISHA: &gt;6.39 crore rural citizens trained.</small></p></article>
+      <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bolt"/></svg></div><div class="pillar__n">PILLAR 09</div><h3>Early Harvest Programmes</h3><p>Quick-win services that build public trust.</p><p><small>Smart Cities Mission covered 100 cities.</small></p></article>
     </div>
   </div>
 </section>
@@ -1092,24 +1125,40 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   <div class="wrap">
     <p class="eyebrow reveal reveal--soft">Scrollytelling</p>
     <h2 class="reveal reveal--pop">How a UPI payment travels</h2>
-    <p class="lead reveal reveal--rise">A simplified four-step path. Settlement times vary; we do not claim an exact second count.</p>
+    <p class="lead reveal reveal--rise">Four steps. Settlement times vary.</p>
     <div class="upi-story">
       <div class="upi-stage card reveal reveal--fade" id="upi-stage" aria-live="polite">
-        <svg viewBox="0 0 360 220" width="100%" height="220" aria-hidden="true">
-          <rect x="20" y="80" width="70" height="60" rx="12" fill="var(--bg-card)" stroke="var(--teal)" stroke-width="2"/>
-          <text x="55" y="115" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">Payer</text>
-          <rect x="270" y="80" width="70" height="60" rx="12" fill="var(--bg-card)" stroke="var(--teal)" stroke-width="2"/>
-          <text x="305" y="115" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">Payee</text>
-          <path id="upi-path" d="M90 110 C150 40, 210 180, 270 110" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-dasharray="6 6"/>
-          <circle id="upi-packet" r="8" fill="var(--orange-bright)" cx="90" cy="110"/>
+        <svg viewBox="0 0 360 220" width="100%" height="220" role="img" aria-label="UPI payment path"><title>UPI payment path</title>
+          <g class="bank-bldg" style="color:var(--teal)">
+            <rect x="20" y="70" width="64" height="78" rx="10" fill="var(--bg-card)" stroke="currentColor" stroke-width="2"/>
+            <path d="M32 148V100M44 148V108M56 148V100M68 148V108" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+            <text x="52" y="88" text-anchor="middle" font-size="10" font-weight="700" fill="var(--text)">Payer</text>
+          </g>
+          <g class="bank-bldg" style="color:var(--india-green)">
+            <rect x="276" y="70" width="64" height="78" rx="10" fill="var(--bg-card)" stroke="currentColor" stroke-width="2"/>
+            <path d="M288 148V100M300 148V108M312 148V100M324 148V108" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity=".55"/>
+            <text x="308" y="88" text-anchor="middle" font-size="10" font-weight="700" fill="var(--text)">Payee</text>
+          </g>
+          <g style="color:var(--orange-bright)">
+            <rect x="148" y="28" width="64" height="44" rx="8" fill="var(--bg-card)" stroke="currentColor" stroke-width="2"/>
+            <text x="180" y="55" text-anchor="middle" font-size="10" font-weight="700" fill="var(--text)">Banks</text>
+          </g>
+          <path id="upi-path" d="M84 110 C130 110, 130 50, 180 50 C230 50, 230 110, 276 110" fill="none" stroke="var(--teal)" stroke-width="2.5" stroke-dasharray="6 6"/>
+          <circle id="upi-packet" r="9" fill="var(--orange-bright)" cx="84" cy="110">
+            <animate attributeName="opacity" values="1;.7;1" dur="1.6s" repeatCount="indefinite"/>
+          </circle>
+          <g transform="translate(150 150)" style="color:var(--teal)" opacity=".85">
+            <rect x="0" y="0" width="28" height="48" rx="4" fill="var(--bg-card)" stroke="currentColor" stroke-width="1.5"/>
+            <rect x="42" y="0" width="28" height="48" rx="4" fill="var(--bg-card)" stroke="currentColor" stroke-width="1.5"/>
+          </g>
         </svg>
         <p id="upi-caption"><strong>Step 1</strong>: Scan QR / enter UPI ID</p>
       </div>
       <div class="upi-steps reveal-stagger" id="upi-steps">
-        <div class="upi-step is-active" data-step="0"><strong>Step 1</strong>Scan the merchant QR or enter a UPI ID in your app.</div>
-        <div class="upi-step" data-step="1"><strong>Step 2</strong>Your app sends a signed payment request through the UPI network.</div>
-        <div class="upi-step" data-step="2"><strong>Step 3</strong>Payer and payee banks verify accounts and authorisation.</div>
-        <div class="upi-step" data-step="3"><strong>Step 4</strong>Funds move; both phones show a confirmation. Done.</div>
+        <div class="upi-step is-active" data-step="0"><strong>Step 1</strong>Scan the merchant QR or enter a UPI ID.</div>
+        <div class="upi-step" data-step="1"><strong>Step 2</strong>Your app sends a signed request on the UPI network.</div>
+        <div class="upi-step" data-step="2"><strong>Step 3</strong>Both banks verify accounts and authorisation.</div>
+        <div class="upi-step" data-step="3"><strong>Step 4</strong>Funds move; both phones confirm. Done.</div>
       </div>
     </div>
   </div>
@@ -1120,7 +1169,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
       <div class="stack-stage" id="stack-stage">
         <div class="stack-stage__left">
           <p class="eyebrow">Ecosystem</p>
-          <h2>India Stack: scroll the layers</h2>
+          <h2>India Stack layers</h2>
           <div class="stack-tabs-row">
             <button type="button" class="icon-btn stack-arrow" id="stack-prev" aria-label="Previous India Stack tab">‹</button>
             <div class="tabs" role="tablist" aria-label="India Stack layers" id="stack-tabs">
@@ -1134,19 +1183,19 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
           <div class="stack-layers">
             <div class="stack-layer is-active" role="tabpanel" id="panel-upi" aria-labelledby="tab-upi" data-stack-i="0">
               <h3>Unified Payments Interface</h3>
-              <p>Real-time payments rails launched 25 Aug 2016. Figures from NPCI reporting.</p>
+              <p>Real-time payments rails since 25 Aug 2016 (NPCI).</p>
             </div>
             <div class="stack-layer" role="tabpanel" id="panel-dl" aria-labelledby="tab-dl" data-stack-i="1" hidden>
               <h3>DigiLocker</h3>
-              <p>Digital document wallet linked to trusted issuers. As of Mar 2026.</p>
+              <p>Document wallet linked to trusted issuers (Mar 2026).</p>
             </div>
             <div class="stack-layer" role="tabpanel" id="panel-ondc" aria-labelledby="tab-ondc" data-stack-i="2" hidden>
               <h3>Open Network for Digital Commerce</h3>
-              <p>Open e-commerce protocol. Mid-2026 figures are reported and approximate.</p>
+              <p>Open e-commerce protocol. Mid-2026 figures approximate.</p>
             </div>
             <div class="stack-layer" role="tabpanel" id="panel-abdm" aria-labelledby="tab-abdm" data-stack-i="3" hidden>
               <h3>Ayushman Bharat Digital Mission</h3>
-              <p>Health IDs and linked records. As of Jul 2026 (Govt of India).</p>
+              <p>Health IDs and linked records (Jul 2026).</p>
             </div>
           </div>
           <div class="stack-progress" aria-hidden="true"><i id="stack-progress-bar"></i></div>
@@ -1154,13 +1203,23 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
         <div class="stack-stage__right" aria-hidden="false">
           <div class="stack-visual is-active" data-stack-i="0" id="visual-upi">
             <div class="stack-visual__art">
-              <svg viewBox="0 0 360 140" role="img" aria-label="UPI flow"><title>UPI</title>
-                <rect x="16" y="40" width="70" height="48" rx="12" fill="var(--bg-elev)" stroke="var(--teal)" stroke-width="2"/>
-                <text x="51" y="69" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">Payer</text>
-                <rect x="274" y="40" width="70" height="48" rx="12" fill="var(--bg-elev)" stroke="var(--india-green)" stroke-width="2"/>
-                <text x="309" y="69" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">Payee</text>
-                <path d="M86 64 C140 10,220 118,274 64" fill="none" stroke="var(--saffron)" stroke-width="2.5" stroke-dasharray="5 5"/>
-                <circle cx="180" cy="64" r="10" fill="var(--orange-bright)"/>
+              <svg class="stack-layers-art" viewBox="0 0 360 150" role="img" aria-label="India Stack layers"><title>India Stack layers</title>
+                <g class="slayer" data-layer="0">
+                  <rect x="60" y="108" width="240" height="28" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="126" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">UPI</text>
+                </g>
+                <g class="slayer" data-layer="1">
+                  <rect x="78" y="78" width="204" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="95" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">DigiLocker</text>
+                </g>
+                <g class="slayer" data-layer="2">
+                  <rect x="96" y="48" width="168" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">ONDC</text>
+                </g>
+                <g class="slayer" data-layer="3">
+                  <rect x="114" y="18" width="132" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="35" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">ABDM</text>
+                </g>
               </svg>
             </div>
             <div class="metrics">
@@ -1172,30 +1231,50 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
           </div>
           <div class="stack-visual" data-stack-i="1" id="visual-dl">
             <div class="stack-visual__art">
-              <svg viewBox="0 0 360 150" role="img" aria-label="DigiLocker"><title>DigiLocker</title>
-                <rect x="110" y="28" width="140" height="90" rx="14" fill="var(--bg-elev)" stroke="var(--teal)" stroke-width="2"/>
-                <rect x="128" y="48" width="104" height="12" rx="4" fill="var(--india-green)" opacity=".55"/>
-                <rect x="128" y="70" width="84" height="10" rx="4" fill="var(--saffron)" opacity=".55"/>
-                <rect x="128" y="90" width="96" height="10" rx="4" fill="var(--teal-bright)" opacity=".45"/>
-                <circle cx="250" cy="40" r="16" fill="var(--india-green)" opacity=".85"/>
-                <path d="M243 40 l5 5 10-12" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+              <svg class="stack-layers-art" viewBox="0 0 360 150" role="img" aria-label="India Stack layers"><title>India Stack layers</title>
+                <g class="slayer" data-layer="0">
+                  <rect x="60" y="108" width="240" height="28" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="126" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">UPI</text>
+                </g>
+                <g class="slayer" data-layer="1">
+                  <rect x="78" y="78" width="204" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="95" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">DigiLocker</text>
+                </g>
+                <g class="slayer" data-layer="2">
+                  <rect x="96" y="48" width="168" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">ONDC</text>
+                </g>
+                <g class="slayer" data-layer="3">
+                  <rect x="114" y="18" width="132" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="35" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">ABDM</text>
+                </g>
               </svg>
             </div>
             <div class="metrics">
               <div class="metric"><b data-count="70.69" data-decimals="2" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Registered users (Mar 2026)</span></div>
               <div class="metric"><b data-count="850" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Documents issued (Mar 2026)</span></div>
-              <div class="metric"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations (Mar 2026)</span></div>
+              <div class="metric"><div class="bento__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-aadhaar"/></svg></div><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations (Mar 2026)</span></div>
             </div>
           </div>
           <div class="stack-visual" data-stack-i="2" id="visual-ondc">
             <div class="stack-visual__art">
-              <svg viewBox="0 0 360 140" role="img" aria-label="ONDC network"><title>ONDC</title>
-                <circle cx="180" cy="62" r="22" fill="var(--teal)" opacity=".9"/>
-                <circle cx="90" cy="40" r="14" fill="var(--saffron)" opacity=".85"/>
-                <circle cx="270" cy="40" r="14" fill="var(--india-green)" opacity=".85"/>
-                <circle cx="90" cy="88" r="14" fill="var(--orange-bright)" opacity=".8"/>
-                <circle cx="270" cy="88" r="14" fill="var(--teal-bright)" opacity=".8"/>
-                <path d="M102 48 L162 62 M258 48 L198 62 M102 92 L162 78 M258 92 L198 78" stroke="var(--border)" stroke-width="2"/>
+              <svg class="stack-layers-art" viewBox="0 0 360 150" role="img" aria-label="India Stack layers"><title>India Stack layers</title>
+                <g class="slayer" data-layer="0">
+                  <rect x="60" y="108" width="240" height="28" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="126" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">UPI</text>
+                </g>
+                <g class="slayer" data-layer="1">
+                  <rect x="78" y="78" width="204" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="95" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">DigiLocker</text>
+                </g>
+                <g class="slayer" data-layer="2">
+                  <rect x="96" y="48" width="168" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">ONDC</text>
+                </g>
+                <g class="slayer" data-layer="3">
+                  <rect x="114" y="18" width="132" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="35" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">ABDM</text>
+                </g>
               </svg>
             </div>
             <div class="metrics">
@@ -1206,11 +1285,23 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
           </div>
           <div class="stack-visual" data-stack-i="3" id="visual-abdm">
             <div class="stack-visual__art">
-              <svg viewBox="0 0 360 140" role="img" aria-label="ABDM health"><title>ABDM</title>
-                <rect x="70" y="35" width="220" height="70" rx="16" fill="var(--bg-elev)" stroke="var(--india-green)" stroke-width="2"/>
-                <path d="M180 48 v44 M158 70 h44" stroke="var(--saffron)" stroke-width="8" stroke-linecap="round"/>
-                <circle cx="110" cy="70" r="10" fill="var(--teal-bright)" opacity=".7"/>
-                <circle cx="250" cy="70" r="10" fill="var(--teal)" opacity=".7"/>
+              <svg class="stack-layers-art" viewBox="0 0 360 150" role="img" aria-label="India Stack layers"><title>India Stack layers</title>
+                <g class="slayer" data-layer="0">
+                  <rect x="60" y="108" width="240" height="28" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="126" text-anchor="middle" font-size="12" font-weight="700" fill="var(--text)">UPI</text>
+                </g>
+                <g class="slayer" data-layer="1">
+                  <rect x="78" y="78" width="204" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="95" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">DigiLocker</text>
+                </g>
+                <g class="slayer" data-layer="2">
+                  <rect x="96" y="48" width="168" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="65" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">ONDC</text>
+                </g>
+                <g class="slayer" data-layer="3">
+                  <rect x="114" y="18" width="132" height="26" rx="8" fill="var(--bg-elev)" stroke="currentColor" stroke-width="2"/>
+                  <text x="180" y="35" text-anchor="middle" font-size="11" font-weight="700" fill="var(--text)">ABDM</text>
+                </g>
               </svg>
             </div>
             <div class="metrics">
@@ -1227,8 +1318,8 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
 <section class="section" id="upi-compare" data-hue="210">
   <div class="wrap">
     <p class="eyebrow reveal reveal--soft">Then vs now</p>
-    <h2 class="reveal reveal--pop">UPI growth: verified scale</h2>
-    <p class="lead reveal reveal--rise">FY2016-17 versus FY2025-26 transaction counts. Badge shows approximate multiple.</p>
+    <h2 class="reveal reveal--pop">UPI growth at scale</h2>
+    <p class="lead reveal reveal--rise">FY2016-17 versus FY2025-26 transaction counts.</p>
     <div class="cmp">
       <div class="bars reveal reveal--left" id="upi-bars">
         <div class="bar-row"><label><span>FY2016-17</span><span>1.78 crore txns</span></label><div class="bar bar--then"><i style="width:8%"></i></div></div>
@@ -1236,7 +1327,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
         <p><span class="badge-x">~13,000× transactions</span> · Banks on UPI: <strong>44 → 703</strong></p>
         <p><small>Value: ~₹0.07 lakh crore → ~₹314 lakh crore (NPCI / reported).</small></p>
       </div>
-      <div class="card reveal reveal--right"><h3>Why it matters</h3><p>UPI turned phones into everyday payment rails for people and merchants, without inventing “live” user counts we cannot verify here.</p></div>
+      <div class="card reveal reveal--right"><h3>Why it matters</h3><p>Phones became everyday payment rails for people and merchants.</p></div>
     </div>
   </div>
 </section>
@@ -1247,16 +1338,16 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   <div class="wrap story-content">
     <p class="eyebrow reveal reveal--soft">Impact</p>
     <h2 class="reveal reveal--pop">Digital India in figures</h2>
-    <p class="lead reveal reveal--rise">Bento of verified public figures. Each tile cites an as-of date.</p>
+    <p class="lead reveal reveal--rise">Verified public figures with as-of dates.</p>
     <div class="bento reveal-stagger">
       <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto" data-lag="0.45"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations</span><small>as of Mar 2026 · UIDAI</small></div></div></div>
-      <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto" data-lag="0.55"><b data-count="59.09" data-decimals="2" data-suffix=" Cr">0</b><span>Jan Dhan accounts</span><small>as of Aug 2026 · from 14.72 Cr in Mar 2015</small></div></div></div>
-      <div class="card spot tilt"><b data-count="1.11" data-decimals="2" data-prefix="~" data-suffix=" Bn">0</b><span>Internet subscribers</span><small>as of Jun 2026 · TRAI</small></div>
-      <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto" data-lag="0.4"><b data-count="2.15" data-decimals="2" data-prefix="&gt;" data-suffix=" Lakh">0</b><span>Gram panchayats on BharatNet</span><small>~97% · Jan 2026</small></div></div></div>
-      <div class="card spot tilt"><b data-count="6.5" data-decimals="1" data-prefix="&gt;" data-suffix=" Lakh">0</b><span>Common Service Centres</span><small>public access points</small></div>
-      <div class="card spot tilt"><b data-count="18.4" data-decimals="1" data-prefix="&gt;₹" data-suffix=" Lakh Cr">0</b><span>GeM cumulative transactions</span><small>as of Jun 2026 · &gt;11 lakh MSMEs</small></div>
-      <div class="card spot tilt"><b data-count="9.20" data-decimals="2" data-prefix="&gt;" data-suffix=" Cr">0</b><span>AgriStack farmer ID records</span><small>as of Mar 2026</small></div>
-      <div class="card spot tilt"><b data-count="12" data-prefix="~₹" data-suffix=" Lakh Cr">0</b><span>Electronics output</span><small>Mar 2026 · from ₹1.9 Lakh Cr in FY2014-15</small></div>
+      <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto" data-lag="0.55"><div class="bento__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bank"/></svg></div><b data-count="59.09" data-decimals="2" data-suffix=" Cr">0</b><span>Jan Dhan accounts</span><small>as of Aug 2026 · from 14.72 Cr in Mar 2015</small></div></div></div>
+      <div class="card spot tilt"><div class="bento__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-signal"/></svg></div><b data-count="1.11" data-decimals="2" data-prefix="~" data-suffix=" Bn">0</b><span>Internet subscribers</span><small>as of Jun 2026 · TRAI</small></div>
+      <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto" data-lag="0.4"><div class="bento__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-tower"/></svg></div><b data-count="2.15" data-decimals="2" data-prefix="&gt;" data-suffix=" Lakh">0</b><span>Gram panchayats on BharatNet</span><small>~97% · Jan 2026</small></div></div></div>
+      <div class="card spot tilt"><div class="bento__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-kiosk"/></svg></div><b data-count="6.5" data-decimals="1" data-prefix="&gt;" data-suffix=" Lakh">0</b><span>Common Service Centres</span><small>public access points</small></div>
+      <div class="card spot tilt"><div class="bento__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-gem"/></svg></div><b data-count="18.4" data-decimals="1" data-prefix="&gt;₹" data-suffix=" Lakh Cr">0</b><span>GeM cumulative transactions</span><small>as of Jun 2026 · &gt;11 lakh MSMEs</small></div>
+      <div class="card spot tilt"><div class="bento__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-farm"/></svg></div><b data-count="9.20" data-decimals="2" data-prefix="&gt;" data-suffix=" Cr">0</b><span>AgriStack farmer ID records</span><small>as of Mar 2026</small></div>
+      <div class="card spot tilt"><div class="bento__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-chip"/></svg></div><b data-count="12" data-prefix="~₹" data-suffix=" Lakh Cr">0</b><span>Electronics output</span><small>Mar 2026 · from ₹1.9 Lakh Cr in FY2014-15</small></div>
     </div>
   </div>
 </section>
@@ -1265,14 +1356,14 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
     <p class="eyebrow reveal reveal--soft">Services</p>
     <h2 class="reveal reveal--pop">Public digital services</h2>
     <div class="services reveal-stagger" id="services-track" tabindex="0" aria-label="Service cards, scroll horizontally">
-      <article class="card svc"><h3>UMANG</h3><p>2,572 services (Jun 2026), up from 166 in 2017.</p></article>
-      <article class="card svc"><h3>DigiLocker</h3><p>&gt;70.69 Cr users; &gt;850 Cr documents (Mar 2026).</p></article>
-      <article class="card svc"><h3>CoWIN</h3><p>&gt;220 Cr vaccine doses managed.</p></article>
-      <article class="card svc"><h3>eSanjeevani</h3><p>&gt;48 Cr teleconsultations (Jun 2026).</p></article>
-      <article class="card svc"><h3>GeM</h3><p>&gt;₹18.4 Lakh Cr cumulative; &gt;11 lakh MSMEs (Jun 2026).</p></article>
-      <article class="card svc"><h3>AgriStack</h3><p>&gt;9.20 Cr farmer ID records (Mar 2026).</p></article>
-      <article class="card svc"><h3>BharatNet</h3><p>&gt;2.15 lakh GPs; ~7 lakh km fibre (Jan 2026).</p></article>
-      <article class="card svc"><h3>CSC</h3><p>&gt;6.5 lakh Common Service Centres nationwide.</p></article>
+      <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-apps"/></svg></div><h3>UMANG</h3><p>2,572 services (Jun 2026), up from 166 in 2017.</p></article>
+      <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-id"/></svg></div><h3>DigiLocker</h3><p>&gt;70.69 Cr users; &gt;850 Cr documents (Mar 2026).</p></article>
+      <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-shield"/></svg></div><h3>CoWIN</h3><p>&gt;220 Cr vaccine doses managed.</p></article>
+      <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-health"/></svg></div><h3>eSanjeevani</h3><p>&gt;48 Cr teleconsultations (Jun 2026).</p></article>
+      <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-gem"/></svg></div><h3>GeM</h3><p>&gt;₹18.4 Lakh Cr cumulative; &gt;11 lakh MSMEs (Jun 2026).</p></article>
+      <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-farm"/></svg></div><h3>AgriStack</h3><p>&gt;9.20 Cr farmer ID records (Mar 2026).</p></article>
+      <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-tower"/></svg></div><h3>BharatNet</h3><p>&gt;2.15 lakh GPs; ~7 lakh km fibre (Jan 2026).</p></article>
+      <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-kiosk"/></svg></div><h3>CSC</h3><p>&gt;6.5 lakh Common Service Centres nationwide.</p></article>
     </div>
     <div class="svc-nav reveal reveal--soft">
       <button type="button" class="icon-btn" id="svc-prev" aria-label="Scroll services left">‹</button>
@@ -1284,14 +1375,14 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   <div class="wrap">
     <p class="eyebrow reveal reveal--soft">For students</p>
     <h2 class="reveal reveal--pop">Digital Citizen Toolkit</h2>
-    <p class="lead reveal reveal--rise">Flip a card for the tip. Then take a short quiz. Nothing is stored or sent.</p>
+    <p class="lead reveal reveal--rise">Flip for tips, then quiz. Nothing is stored.</p>
     <div class="flips reveal-stagger" style="margin:1.25rem 0">
-      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><h3>Never share OTP / PIN</h3><p><small>Focus / hover to flip</small></p></div><div class="flip__face flip__back"><p>Banks and UPI apps will not ask for your OTP on a call. Hang up and verify in the official app.</p></div></div></div>
-      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><h3>Verify before you tap</h3><p><small>Focus / hover to flip</small></p></div><div class="flip__face flip__back"><p>Hover or long-press links. Check the domain. When unsure, open the site yourself from a bookmark.</p></div></div></div>
-      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><h3>Strong passwords + 2FA</h3><p><small>Focus / hover to flip</small></p></div><div class="flip__face flip__back"><p>Use a unique passphrase and turn on two-factor authentication wherever it is offered.</p></div></div></div>
-      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><h3>Report cyber fraud</h3><p><small>Focus / hover to flip</small></p></div><div class="flip__face flip__back"><p>Call helpline 1930 or report at cybercrime.gov.in if money or data is at risk.</p></div></div></div>
-      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><h3>Respect others online</h3><p><small>Focus / hover to flip</small></p></div><div class="flip__face flip__back"><p>No harassment, no hate. Screenshot less; empathy more.</p></div></div></div>
-      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><h3>Spot fake news</h3><p><small>Focus / hover to flip</small></p></div><div class="flip__face flip__back"><p>Check the source, date, and a second trusted outlet before you share.</p></div></div></div>
+      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><div class="flip__ico" aria-hidden="true"><svg class="ico ico--lg" viewBox="0 0 24 24"><use href="#i-lock"/></svg></div><h3>Never share OTP / PIN</h3><p><small>Tap to flip</small></p></div><div class="flip__face flip__back"><p>Banks and UPI apps will not ask for your OTP on a call. Hang up and verify in the official app.</p></div></div></div>
+      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><div class="flip__ico" aria-hidden="true"><svg class="ico ico--lg" viewBox="0 0 24 24"><use href="#i-link"/></svg></div><h3>Verify before you tap</h3><p><small>Tap to flip</small></p></div><div class="flip__face flip__back"><p>Hover or long-press links. Check the domain. When unsure, open the site yourself from a bookmark.</p></div></div></div>
+      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><div class="flip__ico" aria-hidden="true"><svg class="ico ico--lg" viewBox="0 0 24 24"><use href="#i-key"/></svg></div><h3>Strong passwords + 2FA</h3><p><small>Tap to flip</small></p></div><div class="flip__face flip__back"><p>Use a unique passphrase and turn on two-factor authentication wherever it is offered.</p></div></div></div>
+      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><div class="flip__ico" aria-hidden="true"><svg class="ico ico--lg" viewBox="0 0 24 24"><use href="#i-phone1930"/></svg></div><h3>Report cyber fraud</h3><p><small>Tap to flip</small></p></div><div class="flip__face flip__back"><p>Call helpline 1930 or report at cybercrime.gov.in if money or data is at risk.</p></div></div></div>
+      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><div class="flip__ico" aria-hidden="true"><svg class="ico ico--lg" viewBox="0 0 24 24"><use href="#i-heart"/></svg></div><h3>Respect others online</h3><p><small>Tap to flip</small></p></div><div class="flip__face flip__back"><p>No harassment, no hate. Screenshot less; empathy more.</p></div></div></div>
+      <div class="flip" tabindex="0" role="button" aria-pressed="false"><div class="flip__inner"><div class="flip__face"><div class="flip__ico" aria-hidden="true"><svg class="ico ico--lg" viewBox="0 0 24 24"><use href="#i-search"/></svg></div><h3>Spot fake news</h3><p><small>Tap to flip</small></p></div><div class="flip__face flip__back"><p>Check the source, date, and a second trusted outlet before you share.</p></div></div></div>
     </div>
     <div class="quiz reveal reveal--pop" id="quiz" aria-labelledby="quiz-title">
       <h3 id="quiz-title">5-question digital citizenship quiz</h3>
@@ -1316,31 +1407,45 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
   <div class="wrap story-content">
     <p class="eyebrow reveal reveal--soft">See the Vision</p>
     <h2 class="reveal reveal--pop">Vision 2047</h2>
-    <p class="lead reveal reveal--rise">Looking ahead in general terms: inclusive multilingual AI, trusted digital public goods, and citizens who stay safe online.</p>
+    <p class="lead reveal reveal--rise">Inclusive AI, trusted public goods, safe digital citizens.</p>
     <div class="vision-grid reveal-stagger">
-      <article class="card"><h3>Inclusive by design</h3><p>Interfaces and AI assistants that respect India’s languages and accessibility needs.</p></article>
-      <article class="card"><h3>Public goods, open rails</h3><p>Shared digital infrastructure: identity, payments, credentials, that many apps can build on.</p></article>
-      <article class="card"><h3>Responsible citizens</h3><p>Privacy habits, fraud awareness, and kindness as everyday digital skills.</p></article>
+      <article class="card"><h3>Inclusive by design</h3><p>Interfaces that respect India’s languages and accessibility.</p></article>
+      <article class="card"><h3>Public goods, open rails</h3><p>Shared rails for identity, payments, and credentials.</p></article>
+      <article class="card"><h3>Responsible citizens</h3><p>Privacy, fraud awareness, and kindness as everyday skills.</p></article>
     </div>
+    
+    <svg class="vision-road" id="vision-road" viewBox="0 0 640 160" role="img" aria-label="Path toward Vision 2047"><title>Path toward 2047</title>
+      <defs><linearGradient id="sunGrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FF9933"/><stop offset="1" stop-color="#FF9933" stop-opacity="0"/></linearGradient></defs>
+      <ellipse cx="520" cy="48" rx="48" ry="48" fill="url(#sunGrad)" opacity=".55"/>
+      <circle cx="520" cy="48" r="22" fill="#FF9933" opacity=".9"/>
+      <path d="M40 120 L180 120 L260 90 L340 110 L420 70 L520 78 L600 50" fill="none" stroke="var(--border)" stroke-width="3"/>
+      <path id="vision-path" pathLength="1" d="M40 120 L180 120 L260 90 L340 110 L420 70 L520 78 L600 50" fill="none" stroke="var(--teal)" stroke-width="3.5"/>
+      <g id="vision-walker" style="color:var(--india-green)">
+        <circle cx="40" cy="112" r="6" fill="currentColor"/>
+        <path d="M40 118 v14 M34 124 h12 M36 132 l-4 10 M44 132 l4 10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+      </g>
+      <path d="M560 90h20v40h-20zM585 100h14v30h-14zM545 105h12v25h-12z" fill="var(--bg-elev)" stroke="var(--teal)" stroke-width="1.5" opacity=".85"/>
+    </svg>
+
     <div class="timeline" id="decade">
       <div class="timeline__fill" id="decade-fill" aria-hidden="true"></div>
-      <div class="t-item reveal reveal--left"><h3>2026: Foundation decade</h3><p>Digital India completes 11 years; UPI and ABDM at national scale.</p></div>
-      <div class="t-item reveal reveal--right"><h3>2030s: Deeper inclusion</h3><p>Broader last-mile access and multilingual public services.</p></div>
-      <div class="t-item reveal reveal--pop"><h3>2047: Centenary horizon</h3><p>A digitally confident Bharat built on trust, skills, and open public goods.</p></div>
+      <div class="t-item reveal reveal--left"><h3>2026: Foundation decade</h3><p>Eleven years on; UPI and ABDM at national scale.</p></div>
+      <div class="t-item reveal reveal--right"><h3>2030s: Deeper inclusion</h3><p>Last-mile access and multilingual public services.</p></div>
+      <div class="t-item reveal reveal--pop"><h3>2047: Centenary horizon</h3><p>A digitally confident Bharat on trust and open public goods.</p></div>
     </div>
   </div>
 </section>
 <section class="section" id="pledge" data-hue="145">
   <div class="wrap">
     <p class="eyebrow reveal reveal--soft">Make the Pledge</p>
-    <h2 class="reveal reveal--pop">I pledge to be a responsible digital citizen</h2>
+    <h2 class="reveal reveal--pop">Responsible digital citizen pledge</h2>
     <form class="pledge-form reveal reveal--rise" id="pledge-form">
       <label for="pledge-name">Your name (shown only on this device)</label>
       <input id="pledge-name" name="name" autocomplete="name" maxlength="60" required placeholder="Type your name">
       <button type="submit" class="btn mag">Generate my pledge card</button>
     </form>
     <div class="pledge-card" id="pledge-card" aria-live="polite">
-      <svg class="pledge-stamp" viewBox="0 0 72 72" aria-hidden="true"><circle cx="36" cy="36" r="30" fill="none" stroke="#FF9933" stroke-width="3"/><circle cx="36" cy="36" r="24" fill="none" stroke="#138808" stroke-width="1.5" stroke-dasharray="4 3"/><text x="36" y="34" text-anchor="middle" font-size="9" font-weight="800" fill="#FF9933">DIGIT</text><text x="36" y="46" text-anchor="middle" font-size="9" font-weight="800" fill="#138808">ALAYA</text></svg>
+      <svg class="pledge-stamp" viewBox="0 0 72 72" role="img" aria-label="DigitAlaya seal"><title>DigitAlaya seal</title><circle cx="36" cy="36" r="30" fill="none" stroke="#FF9933" stroke-width="3"/><circle cx="36" cy="36" r="24" fill="none" stroke="#138808" stroke-width="1.5" stroke-dasharray="4 3"/><path d="M36 18l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="#FF9933" opacity=".85"/><text x="36" y="50" text-anchor="middle" font-size="8" font-weight="800" fill="#138808">DIGIT ALAYA</text></svg>
       <p class="eyebrow">DigitAlaya · Web Wizards</p>
       <h3>Digital Citizen Pledge</h3>
       <p>I, <strong id="pledge-who"></strong>, pledge to protect OTPs and PINs, verify before I tap, use strong authentication, report fraud via 1930 / cybercrime.gov.in, respect others online, and check facts before I share.</p>
@@ -1375,7 +1480,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
       </span>
       <span class="logo__word"><span class="logo__digit">Digit</span><span class="logo__alaya">Alaya</span></span>
     </div>
-    <p class="reveal reveal--rise">Digital India, told for students: payments, identity, health, and citizenship.</p>
+    <p class="reveal reveal--rise">Digital India for students: payments, identity, health, citizenship.</p>
     <p class="footer__credit reveal reveal--soft" id="footer-credit">Made by Nityant Gupta, Class 10, Bal Bharati Public School, Rohini</p>
     <p class="explored reveal reveal--fade" id="explored-stat" aria-live="polite">Sections explored: <b id="explored-n">0</b>/<span id="explored-total">0</span></p>
   </div>
@@ -1409,6 +1514,7 @@ html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([h
     <button type="button" class="btn help-modal__close" id="help-close">Got it</button>
   </div>
 </div>
+<button type="button" class="help-fab" id="help-fab" aria-label="Help and shortcuts">?</button>
 <div class="kbd-hint" aria-hidden="true"><kbd>/</kbd> jump · <kbd>?</kbd> help</div>
 <div class="confetti" id="confetti" aria-hidden="true"></div>
 <div class="burst-layer" id="burst-layer" aria-hidden="true"></div>
@@ -2174,6 +2280,7 @@ window.addEventListener("digitalaya-device-continued", function(){
 
   [0, 120, 500, 1200].forEach(ms => {
     setTimeout(function(){
+      if (document.body.classList.contains("gate-active")) return;
       if (document.documentElement.classList.contains("device-continued") ||
           document.documentElement.classList.contains("device-allowed")) {
         forceVisibleCounts();
@@ -2575,6 +2682,7 @@ window.addEventListener("digitalaya-device-continued", function(){
     e.preventDefault();
     const name = document.getElementById("pledge-name").value.trim() || "Digital Citizen";
     document.getElementById("pledge-who").textContent = name;
+    const st=card.querySelector(".pledge-stamp"); if(st){st.classList.remove("is-stamp"); void st.offsetWidth; st.classList.add("is-stamp");}
     card.classList.add("is-show");
     card.scrollIntoView({behavior: "smooth", block:"nearest"});
     if (window.__toast) window.__toast("Pledge Keeper", "Your digital citizen card is ready.");
@@ -2588,26 +2696,29 @@ window.addEventListener("digitalaya-device-continued", function(){
   if (!svg) return;
   const edges = document.getElementById("net-edges");
   const nodes = document.getElementById("net-nodes");
-  const pts = [];
-  for (let i = 0; i < 18; i++) {
-    pts.push({x: 40 + (i * 97 % 320), y: 40 + (i * 53 % 320)});
-  }
-  pts.forEach((p,i) => {
-    for (let j = i+1; j < pts.length; j++) {
-      const dx = pts[j].x - p.x, dy = pts[j].y - p.y;
-      if (dx*dx + dy*dy < 110*110) {
-        const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
-        l.setAttribute("x1", p.x); l.setAttribute("y1", p.y);
-        l.setAttribute("x2", pts[j].x); l.setAttribute("y2", pts[j].y);
-        edges.appendChild(l);
-      }
+  /* Composed hero scene already has edges/nodes; only build abstract net if empty */
+  if (edges && nodes && edges.children.length === 0 && nodes.children.length === 0) {
+    const pts = [];
+    for (let i = 0; i < 18; i++) {
+      pts.push({x: 40 + (i * 97 % 320), y: 40 + (i * 53 % 320)});
     }
-    const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-    c.setAttribute("cx", p.x); c.setAttribute("cy", p.y); c.setAttribute("r", 4);
-    c.setAttribute("fill", "var(--teal)");
-    nodes.appendChild(c);
-  });
-  if (finePointer && !reduceMotion) {
+    pts.forEach((p,i) => {
+      for (let j = i+1; j < pts.length; j++) {
+        const dx = pts[j].x - p.x, dy = pts[j].y - p.y;
+        if (dx*dx + dy*dy < 110*110) {
+          const l = document.createElementNS("http://www.w3.org/2000/svg", "line");
+          l.setAttribute("x1", p.x); l.setAttribute("y1", p.y);
+          l.setAttribute("x2", pts[j].x); l.setAttribute("y2", pts[j].y);
+          edges.appendChild(l);
+        }
+      }
+      const c = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+      c.setAttribute("cx", p.x); c.setAttribute("cy", p.y); c.setAttribute("r", 4);
+      c.setAttribute("fill", "var(--teal)");
+      nodes.appendChild(c);
+    });
+  }
+  if (finePointer && !reduceMotion && nodes) {
     svg.addEventListener("pointermove", e => {
       const r = svg.getBoundingClientRect();
       const x = ((e.clientX - r.left) / r.width - 0.5) * 12;
@@ -2617,6 +2728,30 @@ window.addEventListener("digitalaya-device-continued", function(){
   }
 })();
 
+
+
+
+/* ===== STACK LAYER LIGHT ===== */
+(function STACK_LIGHT(){
+  function light(i){
+    document.querySelectorAll(".stack-layers-art").forEach(svg => {
+      svg.querySelectorAll(".slayer").forEach(g => {
+        const li = Number(g.getAttribute("data-layer"));
+        /* light active layer and those below for stack feel */
+        if (li <= i) g.classList.add("is-lit");
+        else g.classList.remove("is-lit");
+      });
+    });
+  }
+  window.__digitalayaStackLight = light;
+  const active = document.querySelector(".stack-visual.is-active");
+  light(active ? Number(active.getAttribute("data-stack-i")||0) : 0);
+  const mo = new MutationObserver(() => {
+    const a = document.querySelector(".stack-visual.is-active");
+    if (a) light(Number(a.getAttribute("data-stack-i")||0));
+  });
+  document.querySelectorAll(".stack-visual").forEach(v => mo.observe(v, {attributes:true, attributeFilter:["class"]}));
+})();
 
 /* ===== FLIP CARDS (touch + keyboard + Mac hover) ===== */
 (function FLIPS(){
@@ -2889,6 +3024,9 @@ window.addEventListener("digitalaya-device-continued", function(){
     if (e.key === "?" && !typing && !e.metaKey && !e.ctrlKey) { e.preventDefault(); open(); }
     if (e.key === "Escape" && modal.classList.contains("is-open")) close();
   });
+  const fab = document.getElementById("help-fab");
+  if (fab) fab.addEventListener("click", open);
+  window.__digitalayaOpenHelp = open;
 })();
 
 
@@ -3012,6 +3150,38 @@ window.addEventListener("digitalaya-device-continued", function(){
   if (reduceMotion) targets.forEach(t => setPaused(t, true));
 })();
 
+
+/* ===== VISION ROAD SCRUB ===== */
+(function VISION_ROAD(){
+  const path = document.getElementById("vision-path");
+  const walker = document.getElementById("vision-walker");
+  const host = document.getElementById("vision");
+  if (!path || !host) return;
+  path.style.strokeDasharray = "1";
+  path.style.strokeDashoffset = "1";
+  function scrub(){
+    const r = host.getBoundingClientRect();
+    const vh = innerHeight || 1;
+    const total = r.height + vh;
+    let p = (vh - r.top) / total;
+    p = Math.max(0, Math.min(1, p));
+    if (reduceMotion) p = r.top < vh && r.bottom > 0 ? 1 : 0;
+    path.style.strokeDashoffset = String(1 - p);
+    if (walker) {
+      /* walk along approximate path length via translate */
+      walker.style.transform = "translate(" + (p * 520) + "px," + (-p * 55) + "px)";
+    }
+  }
+  let raf = 0;
+  function onScroll(){
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = 0; scrub(); });
+  }
+  addEventListener("scroll", onScroll, {passive:true});
+  addEventListener("resize", onScroll, {passive:true});
+  scrub();
+})();
+
 /* ===== SECTIONS EXPLORED + IMPACT TOAST ===== */
 (function EXPLORED(){
   const ids = ["mission","journey","pillars","upi-flow","stack","upi-compare","impact","services","toolkit","vision","pledge","sources"];
@@ -3067,9 +3237,36 @@ window.addEventListener("digitalaya-device-continued", function(){
     return false;
   }
 
+  function layoutNarrow(){
+    try {
+      if (window.matchMedia("(max-width:1279px)").matches) return true;
+    } catch (e) {}
+    const innerW = Number(window.innerWidth || 0);
+    const clientW = Number((document.documentElement && document.documentElement.clientWidth) || 0);
+    let vvW = 0;
+    try { if (window.visualViewport && window.visualViewport.width) vvW = Number(window.visualViewport.width); } catch (e2) {}
+    const layoutW = Math.max(innerW || 0, clientW || 0, vvW || 0);
+    return layoutW > 0 && layoutW < 1280;
+  }
+
   function sync(){
     if (hasContinued()) {
       markContinued();
+      return;
+    }
+    /* Narrow layout always shows gate until Continue — even if pointer quirks say "ok" */
+    if (layoutNarrow()) {
+      document.documentElement.classList.remove("device-allowed");
+      document.documentElement.classList.remove("device-continued");
+      document.documentElement.classList.add("device-blocked");
+      document.body.classList.add("gate-active");
+      gate.removeAttribute("hidden");
+      const mg = document.getElementById("motion-gate");
+      if (mg) { mg.hidden = true; }
+      const mb = document.getElementById("motion-banner");
+      if (mb) mb.classList.remove("is-on");
+      document.body.classList.remove("motion-lock");
+      try { window.scrollTo(0, 0); } catch (e) {}
       return;
     }
     const ok = isDesktopOk();
@@ -3086,10 +3283,8 @@ window.addEventListener("digitalaya-device-continued", function(){
       document.body.classList.add("gate-active");
       gate.removeAttribute("hidden");
       const mg = document.getElementById("motion-gate");
-      if (mg) {
-        mg.hidden = true;
-        document.body.classList.remove("motion-lock");
-      }
+      if (mg) { mg.hidden = true; }
+      document.body.classList.remove("motion-lock");
       try { window.scrollTo(0, 0); } catch (e) {}
     }
   }
@@ -3101,7 +3296,6 @@ window.addEventListener("digitalaya-device-continued", function(){
         const ev = new Event("digitalaya-device-continued");
         window.dispatchEvent(ev);
       } catch (e) {}
-      /* After continue, motion gate can show on phones too */
       try {
         if (typeof window.__digitalayaMotionSync === "function") window.__digitalayaMotionSync();
       } catch (e2) {}
@@ -3123,85 +3317,17 @@ window.addEventListener("digitalaya-device-continued", function(){
   setTimeout(sync, 1500);
 })();
 
-/* ===== MOTION GATE ===== */
+
+/* ===== MOTION BANNER (non-blocking; after device continue / desktop-ok) ===== */
 (function MOTION_GATE(){
-  const gate = document.getElementById("motion-gate");
-  const card = document.getElementById("motion-gate-card");
-  if (!gate || !card) return;
+  const banner = document.getElementById("motion-banner");
+  const dismiss = document.getElementById("motion-banner-dismiss");
+  const legacy = document.getElementById("motion-gate");
+  if (legacy) { legacy.hidden = true; legacy.setAttribute("aria-hidden", "true"); }
+  if (!banner) return;
 
   const KEY = "digitalaya-motion-ok";
-  const mqWide = matchMedia("(min-width:1280px)");
   const mqReduce = matchMedia("(prefers-reduced-motion: reduce)");
-  const steps = {
-    1: document.getElementById("motion-step-1"),
-    2: document.getElementById("motion-step-2"),
-    3: document.getElementById("motion-step-3"),
-    4: document.getElementById("motion-step-4")
-  };
-  const notice = document.getElementById("motion-rm-notice");
-  const guideBody = document.getElementById("motion-guide-body");
-  let active = false;
-  let step = 1;
-  let lastFocus = null;
-
-  const GUIDES = {
-    android: {
-      title: "Android",
-      html: "<p><strong>Turn Remove animations / Reduce motion off</strong></p><ol>"
-        + "<li>Open <strong>Settings</strong> → <strong>Accessibility</strong> (sometimes under <strong>Additional settings</strong>).</li>"
-        + "<li>Look for <strong>Remove animations</strong>, <strong>Remove animations</strong> toggle, or <strong>Visibility enhancements</strong> → turn it <strong>Off</strong>.</li>"
-        + "<li>On some phones: <strong>Developer options</strong> → set <strong>Window / Transition / Animator duration scale</strong> to <strong>1x</strong> (not Animation off).</li>"
-        + "<li>Chrome and most Android browsers follow this. Refresh DigitAlaya after changing settings.</li>"
-        + "</ol>"
-    },
-    ios: {
-      title: "iPhone / iPad",
-      html: "<p><strong>Turn Reduce Motion off</strong></p><ol>"
-        + "<li>Open the <strong>Settings</strong> app.</li>"
-        + "<li>Go to <strong>Accessibility</strong> → <strong>Motion</strong>.</li>"
-        + "<li>Turn <strong>Reduce Motion</strong> <strong>Off</strong>.</li>"
-        + "<li>Safari and Chrome on iOS follow this. Return here and refresh DigitAlaya.</li>"
-        + "</ol>"
-    },
-    windows: {
-      title: "Windows",
-      html: "<p><strong>Turn animation effects back on</strong></p><ol>"
-        + "<li>Open <strong>Settings</strong>, then <strong>Accessibility</strong>, then <strong>Visual effects</strong>.</li>"
-        + "<li>Set <strong>Animation effects</strong> to <strong>On</strong>.</li>"
-        + "<li>Optional: press Win+R, type <strong>sysdm.cpl</strong>, open <strong>Advanced</strong>, then <strong>Performance Settings</strong>, and keep <strong>Animate controls and elements inside windows</strong> checked.</li>"
-        + "<li>Chrome, Edge, and most browsers follow the Windows show-animations preference. Refresh this page after changing settings.</li>"
-        + "</ol>"
-    },
-    macos: {
-      title: "macOS",
-      html: "<p><strong>Turn Reduce Motion off</strong></p><ol>"
-        + "<li>Open <strong>System Settings</strong>.</li>"
-        + "<li>Go to <strong>Accessibility</strong>, then <strong>Display</strong>.</li>"
-        + "<li>Turn <strong>Reduce motion</strong> <strong>Off</strong>.</li>"
-        + "<li>Safari, Chrome, and Edge on Mac follow this preference. Refresh DigitAlaya after you change it.</li>"
-        + "</ol>"
-    },
-    linux: {
-      title: "Linux or ChromeOS",
-      html: "<p><strong>ChromeOS</strong></p><ol>"
-        + "<li>Open <strong>Settings</strong> → <strong>Accessibility</strong> → <strong>Manage accessibility features</strong>.</li>"
-        + "<li>Turn off any reduced-motion or animation-limiting options if present.</li>"
-        + "</ol>"
-        + "<p><strong>Linux desktop</strong></p><ol>"
-        + "<li>GNOME: check Accessibility settings for reduce-animation options and turn them off.</li>"
-        + "<li>KDE: check desktop effects and keep window animations enabled.</li>"
-        + "<li>Your browser usually follows the system <strong>prefers-reduced-motion</strong> preference. Refresh after changes.</li>"
-        + "</ol>"
-    },
-    browser: {
-      title: "Browser only",
-      html: "<p><strong>Most browsers follow the operating system</strong></p><ol>"
-        + "<li>Chrome, Edge, and Safari normally follow the system reduce-motion preference. Change it in Android, iPhone, Windows, macOS, or Linux using the steps for that system.</li>"
-        + "<li>Firefox: open <strong>Settings</strong> → <strong>General</strong> → <strong>Browsing</strong>, and make sure nothing forces reduced motion. Advanced users can set <strong>about:config</strong> key <strong>ui.prefersReducedMotion</strong> to <strong>0</strong>.</li>"
-        + "<li>After changing settings, refresh DigitAlaya. If this notice still appears, the browser is still reporting reduced motion.</li>"
-        + "</ol>"
-    }
-  };
 
   function done(){
     try { return sessionStorage.getItem(KEY) === "1"; } catch(e){ return false; }
@@ -3209,132 +3335,43 @@ window.addEventListener("digitalaya-device-continued", function(){
   function markDone(){
     try { sessionStorage.setItem(KEY, "1"); } catch(e){}
   }
-
-  function focusables(){
-    return Array.from(card.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'))
-      .filter(el => !el.disabled && el.offsetParent !== null && !el.closest("[hidden]"));
-  }
-
-  function showStep(n){
-    step = n;
-    Object.keys(steps).forEach(k => {
-      const el = steps[k];
-      if (!el) return;
-      el.hidden = String(k) !== String(n);
-    });
-    if (n === 1 && notice) {
-      notice.hidden = !mqReduce.matches;
-    }
-    const labelled = card.querySelector(".motion-step:not([hidden]) h2");
-    if (labelled) card.setAttribute("aria-labelledby", labelled.id);
-    requestAnimationFrame(() => {
-      const list = focusables();
-      if (list.length) list[0].focus();
-      else card.focus();
-    });
-  }
-
-  function lock(){
-    if (active) return;
-    active = true;
-    lastFocus = document.activeElement;
-    gate.hidden = false;
-    document.body.classList.add("motion-lock");
-    showStep(1);
-  }
-
-  function unlock(){
-    markDone();
-    active = false;
-    gate.hidden = true;
-    document.body.classList.remove("motion-lock");
-    if (lastFocus && typeof lastFocus.focus === "function") {
-      try { lastFocus.focus(); } catch(e){}
-    }
-    try {
-      if (typeof window.__digitalayaWake === "function") window.__digitalayaWake("motion-unlocked");
-    } catch(eW){}
-  }
-
   function deviceBlocked(){
     if (document.documentElement.classList.contains("device-continued")) return false;
     return !document.documentElement.classList.contains("device-allowed")
       || document.body.classList.contains("gate-active");
   }
-
-  function sync(){
-    /* Show on phones after Continue anyway, and on allowed large screens */
-    if (deviceBlocked()) {
-      gate.hidden = true;
-      document.body.classList.remove("motion-lock");
-      active = false;
-      return;
-    }
-    if (done()) {
-      gate.hidden = true;
-      document.body.classList.remove("motion-lock");
-      active = false;
-      return;
-    }
-    lock();
+  function hide(){
+    banner.classList.remove("is-on");
+    banner.setAttribute("hidden", "");
+    document.body.classList.remove("motion-lock");
   }
-
+  function show(){
+    if (done() || !mqReduce.matches) { hide(); return; }
+    if (deviceBlocked()) { hide(); return; }
+    banner.removeAttribute("hidden");
+    banner.classList.add("is-on");
+  }
+  function unlock(){
+    markDone();
+    hide();
+    try {
+      if (typeof window.__digitalayaWake === "function") window.__digitalayaWake("motion-unlocked");
+    } catch(eW){}
+  }
+  function sync(){
+    if (deviceBlocked()) { hide(); return; }
+    if (done()) { hide(); return; }
+    if (mqReduce.matches) show();
+    else hide();
+  }
   window.__digitalayaMotionSync = sync;
   window.addEventListener("digitalaya-device-continued", sync);
-
-  gate.addEventListener("click", function(e){
-    const t = e.target.closest("[data-motion-go],[data-motion-unlock],[data-os]");
-    if (!t || !gate.contains(t)) return;
-    if (t.hasAttribute("data-motion-unlock")) {
-      if (mqReduce.matches && guideBody) {
-        // still allow unlock; guide already warned to refresh
-      }
-      unlock();
-      return;
-    }
-    if (t.hasAttribute("data-motion-go")) {
-      showStep(Number(t.getAttribute("data-motion-go")));
-      return;
-    }
-    if (t.hasAttribute("data-os")) {
-      const key = t.getAttribute("data-os");
-      const g = GUIDES[key];
-      if (!g || !guideBody) return;
-      const h2 = document.getElementById("motion-step-4-title");
-      if (h2) h2.textContent = "Turn motion settings off: " + g.title;
-      guideBody.innerHTML = g.html + "<p>If the browser still reports reduced motion after you change settings, refresh this page.</p>";
-      showStep(4);
-    }
-  });
-
-  document.addEventListener("keydown", function(e){
-    if (!active) return;
-    if (e.key === "Escape") {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
-    if (e.key !== "Tab") return;
-    const list = focusables();
-    if (!list.length) { e.preventDefault(); return; }
-    const first = list[0];
-    const last = list[list.length - 1];
-    if (e.shiftKey && document.activeElement === first) {
-      e.preventDefault();
-      last.focus();
-    } else if (!e.shiftKey && document.activeElement === last) {
-      e.preventDefault();
-      first.focus();
-    }
-  }, true);
-
-  if (mqWide.addEventListener) mqWide.addEventListener("change", sync);
-  else if (mqWide.addListener) mqWide.addListener(sync);
-  if (mqReduce.addEventListener) mqReduce.addEventListener("change", function(){
-    if (active && step === 1 && notice) notice.hidden = !mqReduce.matches;
-  });
+  if (dismiss) dismiss.addEventListener("click", unlock);
+  if (mqReduce.addEventListener) mqReduce.addEventListener("change", sync);
+  else if (mqReduce.addListener) mqReduce.addListener(sync);
   sync();
 })();
+
 
 /* Session already continued (Android revisit): wake layout/IO once DOM is ready */
 try {

@@ -882,18 +882,30 @@ html[data-theme="dark"] .device-gate__warn{background:rgba(255,153,51,.22);backg
 }
 
 /* ===== MOTION BANNER (non-blocking; after device gate) ===== (all screens; after device gate on phones) ===== */
-.motion-banner{display:none;position:fixed;left:max(.75rem,env(safe-area-inset-left));right:max(.75rem,env(safe-area-inset-right));bottom:max(.75rem,env(safe-area-inset-bottom));z-index:900;max-width:28rem;margin-inline:auto;pointer-events:auto}
-.motion-banner.is-on{display:block}
-.motion-banner__card{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;box-shadow:var(--shadow);padding:.85rem 1rem;display:flex;gap:.75rem;align-items:flex-start;position:relative}
-.motion-banner__card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);border-radius:12px 12px 0 0;pointer-events:none}
-.motion-banner p{margin:0;color:var(--muted);font-size:.88rem;line-height:1.45;flex:1}
-.motion-banner__dismiss{flex:0 0 auto;min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:10px;background:var(--bg-elev);color:var(--text);font-weight:700;cursor:pointer;touch-action:manipulation}
-.motion-banner__dismiss:hover,.motion-banner__dismiss:focus-visible{border-color:var(--india-green);color:var(--india-green)}
-/* Legacy motion-gate markup kept hidden permanently (non-blocking banner replaces it) */
-.motion-gate{display:none!important}
-body.motion-lock{overflow:visible!important}
-body.motion-lock > :not(.motion-gate):not(script){visibility:visible!important;pointer-events:auto!important}
+/* Motion gate: blocking until Continue anyway when prefers-reduced-motion */
+.motion-banner{display:none!important}
+.motion-gate{display:none}
+html.device-blocked .motion-gate,
+body.gate-active .motion-gate{display:none!important}
+body.motion-lock:not(.gate-active){overflow:hidden!important}
+body.motion-lock:not(.gate-active) > :not(.motion-gate):not(script){visibility:hidden!important;pointer-events:none!important}
 .motion-gate[hidden]{display:none!important}
+html:not(.device-blocked) body.motion-lock:not(.gate-active) .motion-gate:not([hidden]){
+  display:flex!important;position:fixed;inset:0;z-index:100001;align-items:center;justify-content:center;
+  padding:max(1.25rem,env(safe-area-inset-top)) max(1.25rem,env(safe-area-inset-right)) max(1.25rem,env(safe-area-inset-bottom)) max(1.25rem,env(safe-area-inset-left));
+  background:var(--bg);color:var(--text);text-align:center;overflow:auto
+}
+.motion-gate__card{max-width:26rem;width:100%;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);padding:1.75rem 1.35rem 1.5rem;position:relative;overflow:hidden;text-align:center}
+.motion-gate__card::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);pointer-events:none}
+.motion-gate__mark{width:48px;height:48px;margin:0 auto .9rem;border-radius:14px;background:linear-gradient(180deg,#FF9933 0 33.333%,#FFFFFF 33.333% 66.666%,#138808 66.666% 100%);display:grid;place-items:center}
+.motion-gate__mark svg{width:26px;height:26px;fill:#1A2436}
+.motion-gate h2{font-size:clamp(1.2rem,4.5vw,1.4rem);margin:0 0 .65rem;letter-spacing:-.02em}
+.motion-gate p{margin:0 0 .9rem;color:var(--muted);font-size:1rem;line-height:1.55}
+.motion-gate__warn{margin:0 0 1rem;padding:.75rem .9rem;border-radius:10px;border:1px solid var(--saffron);background:rgba(255,153,51,.18);background:color-mix(in srgb,var(--saffron) 18%,var(--bg-card));color:var(--text);font-size:.95rem;line-height:1.5;text-align:left}
+.motion-gate__actions{display:flex;flex-direction:column;gap:.65rem;margin-top:.35rem}
+.motion-gate__actions .btn{width:100%;min-height:48px;justify-content:center;white-space:normal}
+.motion-gate__hint{margin:0;color:var(--muted);font-size:.9rem;line-height:1.45}
+html[data-theme="dark"] .motion-gate__warn{background:rgba(255,153,51,.22);background:color-mix(in srgb,var(--saffron) 22%,#152033);color:#E8EEF7;border-color:#FF9933}
 </style></head><body>
 
 <div class="device-gate" id="device-gate" role="presentation">
@@ -910,21 +922,16 @@ body.motion-lock > :not(.motion-gate):not(script){visibility:visible!important;p
   </div>
 </div>
 
-<div class="motion-banner" id="motion-banner" role="status" aria-live="polite" hidden>
-  <div class="motion-banner__card">
-    <p id="motion-banner-text">Reduced motion is on in your system or browser. Animations will stay calm; all features still work. You can turn reduce-motion off in accessibility settings for the full motion set.</p>
-    <button type="button" class="motion-banner__dismiss" id="motion-banner-dismiss" aria-label="Dismiss motion notice">OK</button>
-  </div>
-</div>
-<div class="motion-gate" id="motion-gate" hidden aria-hidden="true">
-  <!-- Legacy multi-step motion gate kept inert; non-blocking banner replaces it -->
-  <div class="motion-gate__card" id="motion-gate-card" tabindex="-1">
-    <div id="motion-step-1" class="motion-step"></div>
-    <div id="motion-step-2" class="motion-step" hidden></div>
-    <div id="motion-step-3" class="motion-step" hidden></div>
-    <div id="motion-step-4" class="motion-step" hidden></div>
-    <div id="motion-rm-notice" hidden></div>
-    <div id="motion-guide-body"></div>
+<div class="motion-gate" id="motion-gate" hidden>
+  <div class="motion-gate__card" id="motion-gate-card" role="dialog" aria-modal="true" aria-labelledby="motion-gate-title" tabindex="-1">
+    <div class="motion-gate__mark" aria-hidden="true"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M16 6 L26 14 V26 H20 V18 H12 V26 H6 V14 Z"/></svg></div>
+    <h2 id="motion-gate-title">Reduce motion is on</h2>
+    <p>Your system or browser is reporting that reduced motion is active. DigitAlaya uses scroll scenes and animations that will stay off or look incomplete while this setting is on.</p>
+    <p class="motion-gate__warn">If you continue with reduce motion still on, you will not see all animations, the page may look incomplete, and you might hit bugs or glitches.</p>
+    <div class="motion-gate__actions">
+      <button type="button" class="btn" id="motion-continue">Continue anyway</button>
+      <p class="motion-gate__hint">For the full experience, turn off Reduce motion / Prefer reduced motion in your accessibility settings, then reload.</p>
+    </div>
   </div>
 </div>
 
@@ -3263,8 +3270,6 @@ window.addEventListener("digitalaya-device-continued", function(){
       gate.removeAttribute("hidden");
       const mg = document.getElementById("motion-gate");
       if (mg) { mg.hidden = true; }
-      const mb = document.getElementById("motion-banner");
-      if (mb) mb.classList.remove("is-on");
       document.body.classList.remove("motion-lock");
       try { window.scrollTo(0, 0); } catch (e) {}
       return;
@@ -3318,13 +3323,12 @@ window.addEventListener("digitalaya-device-continued", function(){
 })();
 
 
-/* ===== MOTION BANNER (non-blocking; after device continue / desktop-ok) ===== */
+/* ===== MOTION GATE (blocking until Continue anyway when reduce-motion is on) ===== */
 (function MOTION_GATE(){
-  const banner = document.getElementById("motion-banner");
-  const dismiss = document.getElementById("motion-banner-dismiss");
-  const legacy = document.getElementById("motion-gate");
-  if (legacy) { legacy.hidden = true; legacy.setAttribute("aria-hidden", "true"); }
-  if (!banner) return;
+  const gate = document.getElementById("motion-gate");
+  const card = document.getElementById("motion-gate-card");
+  const btn = document.getElementById("motion-continue");
+  if (!gate) return;
 
   const KEY = "digitalaya-motion-ok";
   const mqReduce = matchMedia("(prefers-reduced-motion: reduce)");
@@ -3338,18 +3342,22 @@ window.addEventListener("digitalaya-device-continued", function(){
   function deviceBlocked(){
     if (document.documentElement.classList.contains("device-continued")) return false;
     return !document.documentElement.classList.contains("device-allowed")
-      || document.body.classList.contains("gate-active");
+      || document.body.classList.contains("gate-active")
+      || document.documentElement.classList.contains("device-blocked");
   }
   function hide(){
-    banner.classList.remove("is-on");
-    banner.setAttribute("hidden", "");
+    gate.hidden = true;
+    gate.setAttribute("aria-hidden", "true");
     document.body.classList.remove("motion-lock");
   }
   function show(){
-    if (done() || !mqReduce.matches) { hide(); return; }
-    if (deviceBlocked()) { hide(); return; }
-    banner.removeAttribute("hidden");
-    banner.classList.add("is-on");
+    gate.hidden = false;
+    gate.removeAttribute("aria-hidden");
+    document.body.classList.add("motion-lock");
+    try { window.scrollTo(0, 0); } catch(e){}
+    try { if (card) card.focus({ preventScroll: true }); } catch(e2){
+      try { if (card) card.focus(); } catch(e3){}
+    }
   }
   function unlock(){
     markDone();
@@ -3366,10 +3374,14 @@ window.addEventListener("digitalaya-device-continued", function(){
   }
   window.__digitalayaMotionSync = sync;
   window.addEventListener("digitalaya-device-continued", sync);
-  if (dismiss) dismiss.addEventListener("click", unlock);
+  if (btn) btn.addEventListener("click", unlock);
   if (mqReduce.addEventListener) mqReduce.addEventListener("change", sync);
   else if (mqReduce.addListener) mqReduce.addListener(sync);
+  window.addEventListener("pageshow", sync);
+  document.addEventListener("visibilitychange", function(){ if (!document.hidden) sync(); });
   sync();
+  setTimeout(sync, 0);
+  setTimeout(sync, 200);
 })();
 
 

@@ -483,65 +483,16 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 .milestone:nth-child(3n+2){border-left-color:#FFFFFF;box-shadow:inset 3px 0 0 0 var(--border)}
 .milestone:nth-child(3n){border-left-color:var(--india-green)}
 .milestone time{display:block;font-size:.82rem;font-weight:700;color:var(--saffron);letter-spacing:.04em}
-.pillars{display:grid;gap:.75rem}
-/* Option A: no sticky stack — full spring cascade on every width */
+.pillars{
+  display:grid;
+  gap:.75rem;
+  max-width:min(560px,100%);
+  margin-inline:auto;
+  justify-items:stretch;
+}
 .pillar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.2rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .pillar::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);pointer-events:none;border-radius:var(--radius) var(--radius) 0 0;transform-origin:left center}
 .pillar__n{font-size:.85rem;font-weight:800;color:var(--india-green);letter-spacing:.08em;display:inline-block}
-/* Reversible pillar fly: transitions (scroll down IN / past OUT / scroll up IN again) */
-.js .pillars.pillars-cascade > .pillar{
-  will-change:opacity,transform;
-  opacity:0;
-  transform:translateY(42px) scale(.86);
-  transition:
-    opacity .7s cubic-bezier(.22,1,.36,1),
-    transform .85s cubic-bezier(.22,1.2,.36,1),
-    box-shadow .55s var(--ease);
-}
-.js .pillars.pillars-cascade > .pillar::before{
-  transform:scaleX(0);
-  transition:transform .65s cubic-bezier(.22,1,.36,1) .08s;
-}
-.js .pillars.pillars-cascade > .pillar .pillar__n{
-  opacity:0;transform:scale(.72);
-  transition:opacity .5s cubic-bezier(.22,1.2,.36,1) .12s,transform .5s cubic-bezier(.22,1.2,.36,1) .12s;
-}
-.js .pillars.pillars-cascade > .pillar:nth-child(odd):not(.is-in):not(.is-away){
-  transform:translateX(-28px) translateY(36px) scale(.86);
-}
-.js .pillars.pillars-cascade > .pillar:nth-child(even):not(.is-in):not(.is-away){
-  transform:translateX(28px) translateY(36px) scale(.86);
-}
-.js .pillars.pillars-cascade > .pillar.is-in{
-  opacity:1;transform:translateX(0) translateY(0) scale(1);
-  box-shadow:var(--shadow);
-}
-.js .pillars.pillars-cascade > .pillar.is-in::before{transform:scaleX(1)}
-.js .pillars.pillars-cascade > .pillar.is-in .pillar__n{opacity:1;transform:scale(1)}
-/* Soft stagger via CSS only — JS toggles is-in synchronously */
-.js .pillars.pillars-cascade > .pillar:nth-child(1).is-in{transition-delay:0ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(2).is-in{transition-delay:55ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(3).is-in{transition-delay:110ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(4).is-in{transition-delay:165ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(5).is-in{transition-delay:220ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(6).is-in{transition-delay:275ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(7).is-in{transition-delay:330ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(8).is-in{transition-delay:385ms}
-.js .pillars.pillars-cascade > .pillar:nth-child(9).is-in{transition-delay:440ms}
-/* Leave through top while scrolling down */
-.js .pillars.pillars-cascade > .pillar.is-away{
-  opacity:0;transform:translateY(-40px) scale(.9);
-  transition-delay:0s;
-}
-.js .pillars.pillars-cascade > .pillar.is-away::before{transform:scaleX(0);transition-delay:0s}
-.js .pillars.pillars-cascade > .pillar.is-away .pillar__n{opacity:0;transform:scale(.72);transition-delay:0s}
-/* Phones/coarse: no lateral offset — Y-only fly */
-@media(hover:none),(pointer:coarse),(max-width:900px){
-  .js .pillars.pillars-cascade > .pillar:nth-child(odd):not(.is-in):not(.is-away),
-  .js .pillars.pillars-cascade > .pillar:nth-child(even):not(.is-in):not(.is-away){
-    transform:translateY(42px) scale(.86);
-  }
-}
 .upi-story{display:grid;gap:1.5rem}
 @media(min-width:900px){.upi-story{grid-template-columns:1fr 1fr;align-items:start}}
 .upi-stage{position:sticky;top:calc(var(--nav-h) + 1rem);z-index:40;background:var(--bg-elev);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem;min-height:200px;-webkit-transform:translateZ(0);transform:translateZ(0)}
@@ -749,8 +700,7 @@ body{animation:bodyFadeIn .9s var(--ease) both}
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .bharat__track,.network,#upi-path,.tabs [role="tab"][aria-selected="true"],.mesh__blob,.btn,.btn--ghost,.icon-btn{animation:none!important}
-  .js .reveal,.js .reveal-stagger>*,.js .reveal--pop,.js .reveal--rise,.js .reveal--tilt,.js .reveal--left,.js .reveal--right,.js .reveal--soft,.js .reveal--fade,.js .pillars.pillars-cascade > .pillar,.js .pillars.pillars-cascade > .pillar.is-away{opacity:1;transform:none;transition:none;animation:none!important}
-  .js .pillars.pillars-cascade > .pillar::before,.js .pillars.pillars-cascade > .pillar .pillar__n{opacity:1;transform:none;animation:none!important}
+  .js .reveal,.js .reveal-stagger>*,.js .reveal--pop,.js .reveal--rise,.js .reveal--tilt,.js .reveal--left,.js .reveal--right,.js .reveal--soft,.js .reveal--fade{opacity:1;transform:none;transition:none;animation:none!important}
   .js .card.is-in,.js .spot.is-in,.js .stat.is-in,.js .milestone.is-in,.js .metric.is-in,.js .flip.is-in,.js .svc.is-in{animation:none!important}
   .tab-panels .panel.is-active,.tab-panels .panel.is-active .metric{animation:none!important}
   .mesh__blob{filter:blur(40px)}
@@ -778,12 +728,8 @@ body{animation:bodyFadeIn .9s var(--ease) both}
 /* Reveal unlock after Continue: JS wake adds .is-in so CSS transitions play on phones.
    Late safety (.reveal-force) snaps any still-hidden nodes if IO never fires. */
 html.device-continued.android-wake .reveal.reveal-force,
-html.device-continued.android-wake .reveal-stagger>*.reveal-force,
-html.device-continued.android-wake .pillars.pillars-cascade > .pillar.reveal-force{opacity:1;transform:none;transition:none;animation:none!important}
-html.device-continued.android-wake .pillars.pillars-cascade > .pillar.reveal-force::before,
-html.device-continued.android-wake .pillars.pillars-cascade > .pillar.reveal-force .pillar__n{opacity:1;transform:none;animation:none!important}
+html.device-continued.android-wake .reveal-stagger>*.reveal-force{opacity:1;transform:none;transition:none;animation:none!important}
 
-/* Pillars: full spring cascade on all widths (sticky stack disabled) */
 .js .upi-stage.reveal:not(.is-in){transform:none} /* sticky stage: fade only */
 
 @media (max-width:899px){
@@ -1406,7 +1352,6 @@ html.has-smooth-scroll{--scroll-ease:1}
 }
 @media (hover:hover) and (pointer:fine) and (min-width:1100px){
   .hover-preview{display:block}
-  .pillars.pillars-cascade{padding-right:min(300px,40%)}
 }
 @media (max-width:1099px),(pointer:coarse),(hover:none),(prefers-reduced-motion:reduce){
   .hover-preview{display:none!important}
@@ -1705,7 +1650,7 @@ html.has-smooth-scroll{--scroll-ease:1}
     <h2 class="reveal reveal--pop">Nine pillars</h2>
     <div class="pillars-hover-stage">
     <div class="hover-preview" id="pillar-preview" aria-hidden="true"><span class="hover-preview__n"></span><span class="hover-preview__label"></span></div>
-    <div class="pillars reveal-stagger pillars-cascade" id="pillars-list">
+    <div class="pillars" id="pillars-list">
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-tower"/></svg></div><div class="pillar__n">PILLAR 01</div><h3>Broadband Highways</h3><p>High-speed connectivity as a national utility.</p><p><small>BharatNet: &gt;2.15 lakh gram panchayats connected (~97%), ~7 lakh km fibre (Jan 2026).</small></p></article>
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-signal"/></svg></div><div class="pillar__n">PILLAR 02</div><h3>Universal Access to Mobile Connectivity</h3><p>Closing gaps so mobiles become the first computer.</p><p><small>Internet subscribers ~1.11 billion (Jun 2026, TRAI).</small></p></article>
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-kiosk"/></svg></div><div class="pillar__n">PILLAR 03</div><h3>Public Internet Access Programme</h3><p>Shared access for people without personal devices.</p><p><small>Common Service Centres: &gt;6.5 lakh.</small></p></article>
@@ -3236,36 +3181,11 @@ window.addEventListener("digisutra-device-continued", function(){
     if (i < STAGGER.length) return STAGGER[i];
     return STAGGER[STAGGER.length - 1] + (i - STAGGER.length + 1) * 95;
   }
-  function isPillarCard(el){
-    return !!(el && el.classList && el.classList.contains("pillar") && el.closest(".pillars-cascade"));
-  }
-  function isPillarsParent(el){
-    return !!(el && el.classList && el.classList.contains("pillars-cascade"));
-  }
-  function pillarClearlyVisible(r, vh){
-    if (!r || (!r.width && !r.height)) return false;
-    /* Mid-band: card clearly on screen — not when section header barely peeks */
-    return r.top < vh * 0.88 && r.bottom > vh * 0.12;
-  }
-  /* Layout box ignores the card's own CSS transform (scale/translate would
-     otherwise move getBoundingClientRect during fly-in and thrash in/away). */
-  function pillarLayoutRect(el){
-    const height = el.offsetHeight || 0;
-    const width = el.offsetWidth || 0;
-    if (!height && !width) return null;
-    let y = 0;
-    for (let n = el; n; n = n.offsetParent) y += n.offsetTop;
-    const top = y - (window.scrollY || window.pageYOffset || 0);
-    return { top: top, bottom: top + height, height: height, width: width };
-  }
   function markIn(el, useStagger){
     if (!el) return;
-    /* Never bulk-unlock all nine pillars from the tall parent */
-    if (isPillarsParent(el)) return;
     if (el.classList.contains("reveal-stagger")) {
       [...el.children].forEach((c,i) => {
         if (c.classList.contains("timeline__fill")) { c.classList.add("is-in"); return; }
-        if (isPillarCard(c)) return; /* pillars observed individually */
         const ms = useStagger ? delayFor(i) : 0;
         setTimeout(() => c.classList.add("is-in"), ms);
         if (c.classList.contains("reveal-stagger")) {
@@ -3276,30 +3196,9 @@ window.addEventListener("digisutra-device-continued", function(){
       el.classList.add("is-in");
     }
   }
-  /* Sync class toggles only — CSS nth-child transition-delay handles stagger.
-     Delayed JS batch timers were cleared by transform-driven IO reentry, starving cards 2–9. */
-  function markPillarIn(el){
-    if (!el) return;
-    if (el.classList.contains("is-in") && !el.classList.contains("is-away")) return;
-    el.classList.remove("is-away");
-    el.classList.add("is-in");
-  }
-  function markPillarAway(el, throughTop){
-    if (!el) return;
-    if (throughTop) {
-      if (el.classList.contains("is-away") && !el.classList.contains("is-in")) return;
-      el.classList.remove("is-in");
-      el.classList.add("is-away");
-    } else {
-      if (!el.classList.contains("is-in") && !el.classList.contains("is-away")) return;
-      el.classList.remove("is-in");
-      el.classList.remove("is-away"); /* reset below viewport for next enter */
-    }
-  }
   function forceNearViewport(all){
     const vh = innerHeight || 800;
     document.querySelectorAll(".reveal,.reveal-stagger").forEach(el => {
-      if (isPillarsParent(el)) return; /* never parent-cascade pillars */
       if (el.closest(".hero")) {
         markIn(el, true);
         return;
@@ -3312,18 +3211,9 @@ window.addEventListener("digisutra-device-continued", function(){
     });
     document.querySelectorAll(".reveal-stagger > *").forEach(c => {
       if (c.classList.contains("timeline__fill")) return;
-      if (isPillarCard(c)) return; /* handled below with stricter gate */
       const r = c.getBoundingClientRect();
       if (!r.width && !r.height) return;
       if (all || (r.top < vh * 1.2 && r.bottom > -vh * 0.15)) c.classList.add("is-in");
-    });
-    document.querySelectorAll(".pillars-cascade > .pillar").forEach(c => {
-      const r = pillarLayoutRect(c) || c.getBoundingClientRect();
-      if (all || pillarClearlyVisible(r, vh)) { markPillarIn(c); return; }
-      if (c.classList.contains("is-in") || c.classList.contains("is-away")) {
-        if (r.bottom < vh * 0.02) markPillarAway(c, true);
-        else if (r.top > vh * 0.98) markPillarAway(c, false);
-      }
     });
     if (typeof window.__digisutraAnimateUpiBar === "function") {
       window.__digisutraAnimateUpiBar();
@@ -3334,14 +3224,6 @@ window.addEventListener("digisutra-device-continued", function(){
     const vh = innerHeight || 800;
     document.querySelectorAll(".reveal:not(.is-in),.reveal-stagger > *:not(.is-in)").forEach(el => {
       if (el.classList.contains("timeline__fill")) { el.classList.add("is-in"); return; }
-      if (isPillarCard(el)) {
-        const r = el.getBoundingClientRect();
-        if (pillarClearlyVisible(r, vh)) {
-          el.classList.add("is-in");
-          el.classList.add("reveal-force");
-        }
-        return;
-      }
       const r = el.getBoundingClientRect();
       if (!r.width && !r.height) return;
       if (r.top < vh * 1.3 && r.bottom > -vh * 0.2) {
@@ -3352,10 +3234,6 @@ window.addEventListener("digisutra-device-continued", function(){
   }
   if (reduceMotion) {
     document.querySelectorAll(".reveal,.reveal-stagger > *").forEach(el => {
-      el.classList.add("is-in");
-      el.classList.remove("is-away");
-    });
-    document.querySelectorAll(".pillars-cascade > .pillar").forEach(el => {
       el.classList.add("is-in");
       el.classList.remove("is-away");
     });
@@ -3371,60 +3249,23 @@ window.addEventListener("digisutra-device-continued", function(){
       io.unobserve(el);
     });
   }, {threshold:[0, 0.12, 0.22, 0.35], rootMargin:"0px 0px -8% 0px"});
-  /* Pillars: keep observing + scroll sync — fly IN mid-band, AWAY on leave, reverse on scroll up */
-  const pillarCards = [...document.querySelectorAll(".pillars-cascade > .pillar")];
-  function syncPillars(){
-    const vh = innerHeight || 800;
-    pillarCards.forEach(el => {
-      const r = pillarLayoutRect(el);
-      if (!r) return;
-      if (pillarClearlyVisible(r, vh)) {
-        markPillarIn(el);
-        return;
-      }
-      if (el.classList.contains("is-in") || el.classList.contains("is-away")) {
-        /* Hysteresis vs mid-band: only leave once nearly fully past, so fly-in transform cannot thrash */
-        if (r.bottom < vh * 0.02) markPillarAway(el, true); /* past top → fly up */
-        else if (r.top > vh * 0.98) markPillarAway(el, false); /* below → reset for re-enter */
-      }
-    });
-  }
-  let pillarSyncRaf = 0;
-  function queuePillarSync(){
-    if (pillarSyncRaf) return;
-    pillarSyncRaf = requestAnimationFrame(() => { pillarSyncRaf = 0; syncPillars(); });
-  }
-  /* Sparse thresholds — transform animation must not flood sync and starve later cards */
-  const pillarIo = new IntersectionObserver(() => { queuePillarSync(); }, {
-    threshold:[0, 0.25, 0.5, 1],
-    rootMargin:"0px 0px 0px 0px"
-  });
   document.querySelectorAll(".reveal,.reveal-stagger").forEach(el => {
-    if (isPillarsParent(el)) return; /* observe children, not tall parent */
     if (el.classList.contains("reveal") && el.parentElement && el.parentElement.classList.contains("reveal-stagger")) {
       return;
     }
     io.observe(el);
   });
-  pillarCards.forEach(el => pillarIo.observe(el));
-  window.addEventListener("scroll", queuePillarSync, {passive:true});
-  window.addEventListener("resize", queuePillarSync, {passive:true});
-  syncPillars();
   function wakeReveals(reason){
     const continued = document.documentElement.classList.contains("device-continued");
     forceNearViewport(false);
     document.querySelectorAll(".reveal,.reveal-stagger").forEach(el => {
-      if (isPillarsParent(el)) return;
       if (el.classList.contains("reveal") && el.parentElement && el.parentElement.classList.contains("reveal-stagger")) return;
       if (el.classList.contains("reveal-stagger")) {
-        const pending = [...el.children].some(c => !c.classList.contains("is-in") && !c.classList.contains("timeline__fill") && !isPillarCard(c));
+        const pending = [...el.children].some(c => !c.classList.contains("is-in") && !c.classList.contains("timeline__fill"));
         if (pending) { try { io.unobserve(el); io.observe(el); } catch(e){} }
       } else if (!el.classList.contains("is-in")) {
         try { io.unobserve(el); io.observe(el); } catch(e){}
       }
-    });
-    document.querySelectorAll(".pillars-cascade > .pillar").forEach(el => {
-      try { pillarIo.unobserve(el); pillarIo.observe(el); } catch(e){}
     });
     if (continued || /continued|late|later|wake/.test(String(reason||""))) {
       clearTimeout(window.__digisutraRevealSafety);

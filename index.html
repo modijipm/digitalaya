@@ -490,8 +490,14 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
   margin-inline:auto;
   justify-items:stretch;
 }
-.pillar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.2rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.pillar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.2rem;box-shadow:var(--shadow);position:relative;overflow:hidden;transition:transform .28s var(--ease-out),box-shadow .28s var(--ease-out)}
 .pillar::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);pointer-events:none;border-radius:var(--radius) var(--radius) 0 0;transform-origin:left center}
+@media (hover:hover) and (pointer:fine){
+  .pillar:hover{transform:translateY(-2px);box-shadow:0 14px 32px color-mix(in srgb,var(--ink,#0a1220) 22%,transparent)}
+}
+@media (prefers-reduced-motion:reduce){
+  .pillar,.pillar:hover{transition:none;transform:none}
+}
 .pillar__n{font-size:.85rem;font-weight:800;color:var(--india-green);letter-spacing:.08em;display:inline-block}
 .upi-story{display:grid;gap:1.5rem}
 @media(min-width:900px){.upi-story{grid-template-columns:1fr 1fr;align-items:start}}
@@ -1322,41 +1328,6 @@ html.has-smooth-scroll{--scroll-ease:1}
   .milestone::after{display:none}
 }
 
-/* Skiper-style hover preview (pillars) — desktop fine pointer only */
-.pillars-hover-stage{
-  position:relative;
-}
-.hover-preview{
-  position:absolute;right:0;top:0;width:min(280px,38%);
-  aspect-ratio:4/3;border-radius:16px;pointer-events:none;
-  opacity:0;z-index:4;
-  border:1px solid color-mix(in srgb,var(--india-green) 30%,var(--border));
-  background:
-    linear-gradient(145deg,
-      color-mix(in srgb,var(--saffron) 18%,var(--bg-elev)),
-      color-mix(in srgb,var(--india-green) 14%,var(--bg-card)));
-  box-shadow:0 18px 40px color-mix(in srgb,var(--ink,#0a1220) 18%,transparent);
-  transform:translate3d(0,0,0) scale(.92);
-  overflow:hidden;
-  display:none;
-}
-.hover-preview__label{
-  position:absolute;left:1rem;right:1rem;bottom:1rem;
-  font-weight:800;font-size:.95rem;color:var(--text);
-  text-shadow:0 1px 0 color-mix(in srgb,var(--bg) 60%,transparent);
-}
-.hover-preview__n{
-  position:absolute;left:1rem;top:1rem;
-  font-size:.72rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
-  color:var(--india-green);
-}
-@media (hover:hover) and (pointer:fine) and (min-width:1100px){
-  .hover-preview{display:block}
-}
-@media (max-width:1099px),(pointer:coarse),(hover:none),(prefers-reduced-motion:reduce){
-  .hover-preview{display:none!important}
-}
-
 /* 7) H-strip peek polish — desktop; touch keeps native scroll */
 @media (min-width:1100px){
   #impact .bento.h-strip{
@@ -1648,9 +1619,7 @@ html.has-smooth-scroll{--scroll-ease:1}
     <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">02</span> Chapter</p>
     <p class="eyebrow reveal reveal--soft">Foundation</p>
     <h2 class="reveal reveal--pop">Nine pillars</h2>
-    <div class="pillars-hover-stage">
-    <div class="hover-preview" id="pillar-preview" aria-hidden="true"><span class="hover-preview__n"></span><span class="hover-preview__label"></span></div>
-    <div class="pillars" id="pillars-list">
+    <div class="pillars reveal-stagger" id="pillars-list">
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-tower"/></svg></div><div class="pillar__n">PILLAR 01</div><h3>Broadband Highways</h3><p>High-speed connectivity as a national utility.</p><p><small>BharatNet: &gt;2.15 lakh gram panchayats connected (~97%), ~7 lakh km fibre (Jan 2026).</small></p></article>
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-signal"/></svg></div><div class="pillar__n">PILLAR 02</div><h3>Universal Access to Mobile Connectivity</h3><p>Closing gaps so mobiles become the first computer.</p><p><small>Internet subscribers ~1.11 billion (Jun 2026, TRAI).</small></p></article>
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-kiosk"/></svg></div><div class="pillar__n">PILLAR 03</div><h3>Public Internet Access Programme</h3><p>Shared access for people without personal devices.</p><p><small>Common Service Centres: &gt;6.5 lakh.</small></p></article>
@@ -1661,7 +1630,6 @@ html.has-smooth-scroll{--scroll-ease:1}
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-laptop"/></svg></div><div class="pillar__n">PILLAR 08</div><h3>IT for Jobs</h3><p>Skills and jobs powered by IT literacy.</p><p><small>PMGDISHA: &gt;6.39 crore rural citizens trained.</small></p></article>
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bolt"/></svg></div><div class="pillar__n">PILLAR 09</div><h3>Early Harvest Programmes</h3><p>Quick-win services that build public trust.</p><p><small>Smart Cities Mission covered 100 cities.</small></p></article>
     </div>
-    </div><!-- /.pillars-hover-stage -->
   </div>
 </section>
 <section class="section" id="upi-flow" data-hue="195">
@@ -3626,52 +3594,6 @@ window.addEventListener("digisutra-device-continued", function(){
 })();
 
 
-
-/* ===== PASS2: Skiper-style pillars hover preview (desktop only) ===== */
-(function PASS2_HOVER_PREVIEW(){
-  const fine = matchMedia("(hover: hover) and (pointer: fine) and (min-width:1100px)");
-  const preview = document.getElementById("pillar-preview");
-  const list = document.getElementById("pillars-list");
-  const stage = list && list.parentElement;
-  if (!preview || !list || !stage) return;
-  let tx = 0, ty = 0, cx = 0, cy = 0, visible = false, raf = 0;
-  const label = preview.querySelector(".hover-preview__label");
-  const num = preview.querySelector(".hover-preview__n");
-  function loop(){
-    raf = 0;
-    cx += (tx - cx) * 0.12;
-    cy += (ty - cy) * 0.12;
-    preview.style.transform = "translate3d(" + cx.toFixed(1) + "px," + cy.toFixed(1) + "px,0) scale(" + (visible ? 1 : 0.92) + ")";
-    preview.style.opacity = visible ? "1" : "0";
-    if (Math.abs(tx - cx) > 0.2 || Math.abs(ty - cy) > 0.2 || visible) raf = requestAnimationFrame(loop);
-  }
-  function onMove(e){
-    if (!fine.matches || reduceMotion) return;
-    const r = stage.getBoundingClientRect();
-    const pw = preview.offsetWidth || 240;
-    const ph = preview.offsetHeight || 180;
-    tx = Math.min(Math.max(e.clientX - r.left - pw * 0.15, 8), r.width - pw - 8);
-    ty = Math.min(Math.max(e.clientY - r.top - ph * 0.35, 8), r.height - ph - 8);
-    if (!raf) raf = requestAnimationFrame(loop);
-  }
-  list.querySelectorAll(".pillar").forEach(function(card){
-    card.addEventListener("pointerenter", function(){
-      if (!fine.matches || reduceMotion) return;
-      visible = true;
-      if (num) num.textContent = (card.querySelector(".pillar__n") || {}).textContent || "";
-      if (label) label.textContent = (card.querySelector("h3") || {}).textContent || "";
-      const hue = card.dataset.hue || "";
-      preview.style.background =
-        "linear-gradient(145deg, color-mix(in srgb, var(--saffron) 22%, var(--bg-elev)), color-mix(in srgb, var(--india-green) 18%, var(--bg-card)))";
-      if (!raf) raf = requestAnimationFrame(loop);
-    });
-    card.addEventListener("pointermove", onMove, {passive:true});
-  });
-  stage.addEventListener("pointerleave", function(){
-    visible = false;
-    if (!raf) raf = requestAnimationFrame(loop);
-  });
-})();
 
 /* ===== PASS2: anchor scroll via smooth helper (desktop only) ===== */
 (function PASS2_ANCHORS(){

@@ -518,9 +518,20 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 }
 .js .pillars.pillars-cascade > .pillar.is-in::before{transform:scaleX(1)}
 .js .pillars.pillars-cascade > .pillar.is-in .pillar__n{opacity:1;transform:scale(1)}
+/* Soft stagger via CSS only — JS toggles is-in synchronously */
+.js .pillars.pillars-cascade > .pillar:nth-child(1).is-in{transition-delay:0ms}
+.js .pillars.pillars-cascade > .pillar:nth-child(2).is-in{transition-delay:55ms}
+.js .pillars.pillars-cascade > .pillar:nth-child(3).is-in{transition-delay:110ms}
+.js .pillars.pillars-cascade > .pillar:nth-child(4).is-in{transition-delay:165ms}
+.js .pillars.pillars-cascade > .pillar:nth-child(5).is-in{transition-delay:220ms}
+.js .pillars.pillars-cascade > .pillar:nth-child(6).is-in{transition-delay:275ms}
+.js .pillars.pillars-cascade > .pillar:nth-child(7).is-in{transition-delay:330ms}
+.js .pillars.pillars-cascade > .pillar:nth-child(8).is-in{transition-delay:385ms}
+.js .pillars.pillars-cascade > .pillar:nth-child(9).is-in{transition-delay:440ms}
 /* Leave through top while scrolling down */
 .js .pillars.pillars-cascade > .pillar.is-away{
   opacity:0;transform:translateY(-40px) scale(.9);
+  transition-delay:0s;
 }
 .js .pillars.pillars-cascade > .pillar.is-away::before{transform:scaleX(0);transition-delay:0s}
 .js .pillars.pillars-cascade > .pillar.is-away .pillar__n{opacity:0;transform:scale(.72);transition-delay:0s}
@@ -3221,8 +3232,6 @@ window.addEventListener("digisutra-device-continued", function(){
 (function REVEALS(){
   /* Uneven organic delays (ms) — calm, not frantic */
   const STAGGER = [0, 95, 175, 270, 360, 455, 545, 640, 730, 820, 910, 1000];
-  /* Tiny same-frame batch delay for pillars that cross mid-band together */
-  const PILLAR_BATCH = [0, 70, 140, 210, 280, 350, 420, 490, 560];
   function delayFor(i){
     if (i < STAGGER.length) return STAGGER[i];
     return STAGGER[STAGGER.length - 1] + (i - STAGGER.length + 1) * 95;
@@ -3236,7 +3245,18 @@ window.addEventListener("digisutra-device-continued", function(){
   function pillarClearlyVisible(r, vh){
     if (!r || (!r.width && !r.height)) return false;
     /* Mid-band: card clearly on screen — not when section header barely peeks */
-    return r.top < vh * 0.88 && r.bottom > vh * 0.12 && r.top < vh * 0.92;
+    return r.top < vh * 0.88 && r.bottom > vh * 0.12;
+  }
+  /* Layout box ignores the card's own CSS transform (scale/translate would
+     otherwise move getBoundingClientRect during fly-in and thrash in/away). */
+  function pillarLayoutRect(el){
+    const height = el.offsetHeight || 0;
+    const width = el.offsetWidth || 0;
+    if (!height && !width) return null;
+    let y = 0;
+    for (let n = el; n; n = n.offsetParent) y += n.offsetTop;
+    const top = y - (window.scrollY || window.pageYOffset || 0);
+    return { top: top, bottom: top + height, height: height, width: width };
   }
   function markIn(el, useStagger){
     if (!el) return;
@@ -3256,36 +3276,25 @@ window.addEventListener("digisutra-device-continued", function(){
       el.classList.add("is-in");
     }
   }
-  let pillarBatchIndex = 0;
-  let pillarBatchTimer = 0;
-  const pillarPending = new WeakMap();
-  function clearPillarPending(el){
-    const t = pillarPending.get(el);
-    if (t) { clearTimeout(t); pillarPending.delete(el); }
-  }
+  /* Sync class toggles only — CSS nth-child transition-delay handles stagger.
+     Delayed JS batch timers were cleared by transform-driven IO reentry, starving cards 2–9. */
   function markPillarIn(el){
     if (!el) return;
     if (el.classList.contains("is-in") && !el.classList.contains("is-away")) return;
-    clearPillarPending(el);
     el.classList.remove("is-away");
-    const i = pillarBatchIndex++;
-    clearTimeout(pillarBatchTimer);
-    pillarBatchTimer = setTimeout(() => { pillarBatchIndex = 0; }, 80);
-    const ms = PILLAR_BATCH[Math.min(i, PILLAR_BATCH.length - 1)] || 0;
-    const apply = () => {
-      pillarPending.delete(el);
-      el.classList.remove("is-away");
-      el.classList.add("is-in");
-    };
-    if (ms) pillarPending.set(el, setTimeout(apply, ms));
-    else apply();
+    el.classList.add("is-in");
   }
   function markPillarAway(el, throughTop){
     if (!el) return;
-    clearPillarPending(el);
-    el.classList.remove("is-in");
-    if (throughTop) el.classList.add("is-away");
-    else el.classList.remove("is-away"); /* reset below viewport for next enter */
+    if (throughTop) {
+      if (el.classList.contains("is-away") && !el.classList.contains("is-in")) return;
+      el.classList.remove("is-in");
+      el.classList.add("is-away");
+    } else {
+      if (!el.classList.contains("is-in") && !el.classList.contains("is-away")) return;
+      el.classList.remove("is-in");
+      el.classList.remove("is-away"); /* reset below viewport for next enter */
+    }
   }
   function forceNearViewport(all){
     const vh = innerHeight || 800;
@@ -3309,11 +3318,11 @@ window.addEventListener("digisutra-device-continued", function(){
       if (all || (r.top < vh * 1.2 && r.bottom > -vh * 0.15)) c.classList.add("is-in");
     });
     document.querySelectorAll(".pillars-cascade > .pillar").forEach(c => {
-      const r = c.getBoundingClientRect();
+      const r = pillarLayoutRect(c) || c.getBoundingClientRect();
       if (all || pillarClearlyVisible(r, vh)) { markPillarIn(c); return; }
       if (c.classList.contains("is-in") || c.classList.contains("is-away")) {
-        if (r.bottom < vh * 0.12) markPillarAway(c, true);
-        else if (r.top > vh * 0.88) markPillarAway(c, false);
+        if (r.bottom < vh * 0.02) markPillarAway(c, true);
+        else if (r.top > vh * 0.98) markPillarAway(c, false);
       }
     });
     if (typeof window.__digisutraAnimateUpiBar === "function") {
@@ -3367,15 +3376,16 @@ window.addEventListener("digisutra-device-continued", function(){
   function syncPillars(){
     const vh = innerHeight || 800;
     pillarCards.forEach(el => {
-      const r = el.getBoundingClientRect();
-      if (!r.height && !r.width) return;
+      const r = pillarLayoutRect(el);
+      if (!r) return;
       if (pillarClearlyVisible(r, vh)) {
         markPillarIn(el);
         return;
       }
-      if (el.classList.contains("is-in") || el.classList.contains("is-away") || pillarPending.has(el)) {
-        if (r.bottom < vh * 0.16) markPillarAway(el, true); /* past top → fly up */
-        else if (r.top > vh * 0.84) markPillarAway(el, false); /* below → reset for re-enter */
+      if (el.classList.contains("is-in") || el.classList.contains("is-away")) {
+        /* Hysteresis vs mid-band: only leave once nearly fully past, so fly-in transform cannot thrash */
+        if (r.bottom < vh * 0.02) markPillarAway(el, true); /* past top → fly up */
+        else if (r.top > vh * 0.98) markPillarAway(el, false); /* below → reset for re-enter */
       }
     });
   }
@@ -3384,8 +3394,9 @@ window.addEventListener("digisutra-device-continued", function(){
     if (pillarSyncRaf) return;
     pillarSyncRaf = requestAnimationFrame(() => { pillarSyncRaf = 0; syncPillars(); });
   }
+  /* Sparse thresholds — transform animation must not flood sync and starve later cards */
   const pillarIo = new IntersectionObserver(() => { queuePillarSync(); }, {
-    threshold:[0, 0.1, 0.2, 0.35, 0.5, 0.65, 0.8, 1],
+    threshold:[0, 0.25, 0.5, 1],
     rootMargin:"0px 0px 0px 0px"
   });
   document.querySelectorAll(".reveal,.reveal-stagger").forEach(el => {

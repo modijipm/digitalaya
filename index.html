@@ -128,10 +128,9 @@ window.__digisutraIsDesktopOk = function(){
     if (shortSide > 0 && shortSide <= 500 && touchPoints > 1) return false;
     if (availShort > 0 && availShort <= 500 && touchPoints > 1) return false;
 
-    /* Coarse primary phone/tablet input without fine pointer → block.
-       Touchscreen laptops/PCs with fine pointer or hover + width>=1280 → allow. */
-    if (coarsePrimary && !(anyFine || finePointer || fineHover || hoverOk)) return false;
-
+    /* Width ≥1280 + non-mobile UA + not phone-sized short side already enforced.
+       Do NOT false-gate touchscreen laptops/2-in-1s that report coarse primary
+       (common on Windows touch PCs). Phones/tablets never reach here. */
     return true;
   } catch (e) {
     return false;
@@ -334,7 +333,7 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 /* ===== India Stack sticky scroll tabs (inspiration A) ===== */
 #stack.stack-scroll{padding:0;overflow:visible}
 .stack-runway{position:relative;height:320vh}
-@media(max-width:576px){.stack-runway{height:360vh}}
+@media(max-width:899px){.stack-runway{height:220vh}}@media(min-width:900px) and (max-width:1099px){.stack-runway{height:260vh}}
 .stack-sticky{position:-webkit-sticky;position:sticky;top:var(--nav-h);height:calc(100vh - var(--nav-h));height:calc(100dvh - var(--nav-h));z-index:30;display:flex;align-items:center;padding:.45rem 0 .55rem;-webkit-transform:translateZ(0);transform:translateZ(0)}
 .stack-stage{width:min(120rem,100% - 1.25rem);max-width:72rem;margin:0 auto;height:min(88vh,calc(100dvh - var(--nav-h) - 1rem));display:grid;grid-template-columns:minmax(0,.42fr) minmax(0,1fr);gap:.85rem;padding:.9rem;border-radius:1.5rem;background:var(--bg-elev);border:1px solid var(--border);box-shadow:var(--shadow);position:relative;overflow:hidden}
 .stack-stage::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);z-index:5;pointer-events:none}
@@ -351,7 +350,7 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 .stack-stage .stack-tabs-row .tabs [role="tab"][aria-selected="true"]{z-index:2}
 .stack-stage__left .stack-tabs-row{overflow:visible}
 @media(max-width:700px){
-  .stack-stage .stack-tabs-row .tabs [role="tab"]{font-size:.72rem;padding:.45rem .4rem;min-height:40px}
+  .stack-stage .stack-tabs-row .tabs [role="tab"]{font-size:.72rem;padding:.45rem .4rem;min-height:44px}
 }
 .stack-layers{position:relative;flex:1 1 auto;min-height:6.5rem}
 .stack-layer{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:.55rem;opacity:0;transform:translateY(22px);transition:opacity .55s var(--ease),transform .55s var(--ease);pointer-events:none}
@@ -1079,11 +1078,14 @@ html.has-smooth-scroll body{overscroll-behavior-y:none}
 .feature-scrub__layer.is-on{opacity:1;transform:none;filter:drop-shadow(0 8px 18px color-mix(in srgb,var(--teal) 22%,transparent))}
 .feature-scrub__progress{height:4px;border-radius:999px;background:color-mix(in srgb,var(--border) 80%,transparent);margin-top:.85rem;overflow:hidden}
 .feature-scrub__progress>i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--saffron),var(--india-green));border-radius:inherit}
-@media(max-width:899px){
+@media(max-width:1099px){
   .feature-scrub__runway{min-height:0}
   .feature-scrub__sticky{position:relative;top:auto;height:auto;padding:0}
   .feature-scrub__stage{padding:1rem}
   .feature-scrub__steps li.is-on{transform:none}
+}
+@media(max-width:899px){
+  .feature-scrub__stage{padding:1rem}
 }
 @media(prefers-reduced-motion:reduce){
   .feature-scrub__steps li,.feature-scrub__layer{transition:none!important}
@@ -1133,6 +1135,27 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
 .mag{transition:transform .2s var(--ease-out),box-shadow .25s}
 .mag:hover{box-shadow:0 10px 28px color-mix(in srgb,var(--india-green) 22%,transparent)}
 
+/* ===== DEVICE / TOUCH SAFETY (matrix QA) ===== */
+.story-sticky-visual{height:100vh;height:100svh;height:100dvh}
+.stack-sticky{height:calc(100vh - var(--nav-h));height:calc(100svh - var(--nav-h));height:calc(100dvh - var(--nav-h))}
+.feature-scrub__sticky{height:calc(100vh - var(--nav-h));height:calc(100svh - var(--nav-h));height:calc(100dvh - var(--nav-h))}
+.stack-stage{height:min(88vh,calc(100svh - var(--nav-h) - 1rem));height:min(88vh,calc(100dvh - var(--nav-h) - 1rem))}
+/* Mouse-parallax / magnetic hover chrome: fine + hover only */
+@media (hover:hover) and (pointer:fine){
+  .mag:hover{box-shadow:0 10px 28px color-mix(in srgb,var(--india-green) 22%,transparent)}
+}
+@media (hover:none), (pointer:coarse){
+  .mag{transform:none!important}
+  .tilt{transform:none!important}
+  /* Interactive reveals: no pre-is-in scale that shrinks tap targets */
+  .js .quiz.reveal--pop:not(.is-in){transform:translateY(12px);opacity:0}
+  .js .quiz.reveal--pop.is-in{transform:none;animation:none}
+}
+@media(max-width:700px){
+  .stack-stage .stack-tabs-row .tabs [role="tab"]{min-height:44px}
+  .quiz__opts button{min-height:44px;align-items:center}
+}
+
 /* Gate polish (same hard rules, clearer chrome) */
 .device-gate__card,.motion-gate__card{
   box-shadow:0 24px 64px rgba(11,18,32,.22),var(--shadow);
@@ -1154,7 +1177,290 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
   .js .reveal--clip:not(.is-in),.js .reveal--mask:not(.is-in){clip-path:none;-webkit-mask-image:none;mask-image:none;transform:translateY(16px)}
 }
 
+
+/* ===== DIGISUTRA PASS2 SITE-TOUR POLISH ===== */
+/* PASS2_POLISH */
+:root{
+  --scroll-p:0;
+  --mx:.5; --my:.5;
+  --grain-opacity:.055;
+}
+html.has-smooth-scroll{--scroll-ease:1}
+
+/* 1) Grain overlay (SVG turbulence) — subtle, no WebGL */
+.grain{
+  position:fixed;inset:0;pointer-events:none;z-index:900;
+  opacity:var(--grain-opacity);
+  mix-blend-mode:multiply;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E");
+  background-size:180px 180px;
+}
+[data-theme="dark"] .grain{mix-blend-mode:soft-light;opacity:.08}
+@media (prefers-reduced-motion:reduce){.grain{opacity:.03}}
+@media (max-width:899px){.grain{opacity:.03}}
+
+/* Stronger morphing hero mesh (shadergradient spirit, India palette only) */
+.mesh{
+  inset:auto -16% -32% auto;
+  width:min(720px,82vw);height:min(560px,68vw);
+  transform:translate3d(calc((var(--mx) - .5) * -18px), calc((var(--my) - .5) * -12px), 0);
+  transition:transform .6s var(--ease-out);
+}
+.mesh__blob--1{
+  background:
+    radial-gradient(circle at 28% 36%,#138808 0%,transparent 58%),
+    radial-gradient(circle at 72% 68%,#0A6B78 0%,transparent 52%),
+    radial-gradient(circle at 50% 50%,#FF9933 0%,transparent 70%);
+}
+.mesh__blob--2{
+  background:
+    radial-gradient(circle at 62% 28%,#FF9933 0%,transparent 58%),
+    radial-gradient(circle at 22% 78%,#0A6B78 0%,transparent 48%);
+}
+@media (hover:hover) and (pointer:fine){
+  .hero__art-parallax{
+    transform:translate3d(calc((var(--mx) - .5) * 14px), calc((var(--my) - .5) * 10px), 0);
+  }
+  .hero-float-badge{
+    transform:translate3d(calc((var(--mx) - .5) * 22px), calc((var(--my) - .5) * 16px), 0);
+  }
+}
+@media (max-width:1099px),(pointer:coarse),(hover:none){
+  .mesh,.hero__art-parallax,.hero-float-badge{transition:none}
+  /* kill mouse-depth; keep scroll parallax via JS transforms */
+  .mesh{transform:none}
+}
+
+/* 2) Scroll progress as CSS var consumers */
+#scroll-progress{transform:scaleX(var(--scroll-p,0))}
+.nav__pill{
+  box-shadow:0 1px 0 color-mix(in srgb,var(--india-green) 25%,transparent),
+             0 8px 22px color-mix(in srgb,var(--saffron) 12%,transparent);
+  border-color:color-mix(in srgb,var(--india-green) 28%,var(--border));
+}
+@media (min-width:900px){
+  .nav a{min-height:40px;display:inline-flex;align-items:center;padding:.35rem .7rem}
+}
+
+/* 3) Sticky chapters: progress-driven clip/opacity helpers */
+.chapter-progress{--cp:0}
+.feature-scrub__layer{
+  clip-path:inset(0 0 calc((1 - var(--layer-on,0)) * 100%) 0);
+  opacity:calc(.2 + var(--layer-on,0) * .8);
+  transform:translate3d(0, calc((1 - var(--layer-on,0)) * 16px), 0) scale(calc(.96 + var(--layer-on,0) * .04));
+  transition:clip-path .35s var(--ease-out),opacity .35s,transform .4s var(--ease-out);
+}
+.feature-scrub__layer.is-on{--layer-on:1}
+.feature-scrub__sticky{
+  top:var(--nav-h);
+  height:calc(100svh - var(--nav-h));
+  height:calc(100dvh - var(--nav-h));
+}
+.story-sticky-visual{
+  height:100svh;height:100dvh;
+}
+@media (max-width:899px){
+  .feature-scrub__runway{min-height:0}
+  .feature-scrub__sticky{
+    position:relative;top:auto;
+    height:auto;min-height:0;
+  }
+  .story-sticky-visual{height:36svh;height:36dvh}
+  .feature-scrub__layer{clip-path:none;opacity:1;transform:none}
+}
+
+/* Journey pin: story-chapter quote feel */
+.journey-pin{
+  top:calc(var(--nav-h) + .65rem);
+  border:1px solid color-mix(in srgb,var(--border) 80%,var(--india-green));
+}
+.journey-pin__cap{font-size:clamp(.92rem,2.2vw,1.05rem)}
+.journey-pin__year{
+  transition:opacity .25s,transform .35s var(--ease-out);
+}
+.journey-pin.is-swap .journey-pin__year{opacity:.35;transform:translateY(6px)}
+
+/* 4) Stronger line-mask / display reveals */
+.js .reveal--line:not(.is-in){
+  opacity:0;
+  transform:translateY(110%);
+  clip-path:inset(0 0 100% 0);
+  transition:opacity .2s,transform 1s var(--ease-out),clip-path 1s var(--ease-out)
+}
+.js .reveal--line.is-in{
+  opacity:1;transform:none;clip-path:inset(0 0 0 0)
+}
+.reveal-line-wrap{display:block;overflow:hidden;padding-bottom:.12em}
+.js .reveal--mask:not(.is-in){
+  -webkit-mask-image:linear-gradient(90deg,transparent 0%,#000 40%,#000 60%,transparent 100%);
+  mask-image:linear-gradient(90deg,transparent 0%,#000 40%,#000 60%,transparent 100%);
+  -webkit-mask-size:220% 100%;mask-size:220% 100%;
+  -webkit-mask-position:100% 0;mask-position:100% 0;
+  transition:opacity 1.05s,-webkit-mask-position 1.15s var(--ease-out),mask-position 1.15s var(--ease-out),transform 1.1s
+}
+.js .reveal--mask.is-in{
+  -webkit-mask-position:0 0;mask-position:0 0
+}
+
+/* Stacked-letter eyebrow (Skiper spirit) — one use */
+.eyebrow--stack{display:inline-flex;flex-wrap:wrap;gap:0;letter-spacing:.14em}
+.eyebrow--stack .ch{
+  display:inline-block;
+  opacity:0;transform:translateY(.55em);
+  transition:opacity .55s var(--ease-out),transform .65s var(--ease-out);
+  transition-delay:calc(var(--i,0) * 38ms);
+}
+.js .eyebrow--stack.is-in .ch,
+.eyebrow--stack.is-in .ch{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){
+  .eyebrow--stack .ch{opacity:1;transform:none;transition:none}
+}
+
+/* 5) Spotlight via --mx/--my (desktop hover only) */
+.spot{--mx:50%;--my:50%;--spot-x:var(--mx);--spot-y:var(--my)}
+.spot::after{
+  background:radial-gradient(280px circle at var(--mx) var(--my),
+    color-mix(in srgb,var(--saffron) 16%,transparent),
+    color-mix(in srgb,var(--teal) 10%,transparent) 42%,
+    transparent 62%);
+}
+@media (hover:hover) and (pointer:fine){
+  .spot:hover::after,.spot:focus-within::after{opacity:1}
+}
+@media (hover:none),(pointer:coarse){
+  .spot::after{display:none!important}
+  .tilt{transform:none!important}
+  .mag{transform:none!important}
+}
+
+/* 6) Basement-style clip reveal on milestones + svc hairline (additive) */
+.milestone{position:relative;overflow:hidden}
+.milestone::after{
+  content:"";position:absolute;inset:0;
+  background:linear-gradient(120deg,
+    color-mix(in srgb,var(--saffron) 14%,transparent),
+    transparent 42%);
+  opacity:0;pointer-events:none;
+  clip-path:inset(0 100% 0 0);
+  transition:clip-path .7s var(--ease-out),opacity .5s;
+}
+.milestone.is-hot::after,.milestone.is-in::after{
+  clip-path:inset(0 0 0 0);opacity:1
+}
+.svc{position:relative;overflow:hidden}
+.svc::before{
+  content:"";position:absolute;inset:0 auto 0 0;width:3px;
+  background:linear-gradient(180deg,var(--saffron),var(--india-green));
+  transform:scaleY(0);transform-origin:top;
+  transition:transform .55s var(--ease-out)
+}
+.svc.is-in::before,.svc:hover::before{transform:scaleY(1)}
+@media (max-width:899px){
+  .milestone::after{display:none}
+}
+
+/* Skiper-style hover preview (pillars) — desktop fine pointer only */
+.pillars-hover-stage{
+  position:relative;
+}
+.hover-preview{
+  position:absolute;right:0;top:0;width:min(280px,38%);
+  aspect-ratio:4/3;border-radius:16px;pointer-events:none;
+  opacity:0;z-index:4;
+  border:1px solid color-mix(in srgb,var(--india-green) 30%,var(--border));
+  background:
+    linear-gradient(145deg,
+      color-mix(in srgb,var(--saffron) 18%,var(--bg-elev)),
+      color-mix(in srgb,var(--india-green) 14%,var(--bg-card)));
+  box-shadow:0 18px 40px color-mix(in srgb,var(--ink,#0a1220) 18%,transparent);
+  transform:translate3d(0,0,0) scale(.92);
+  overflow:hidden;
+  display:none;
+}
+.hover-preview__label{
+  position:absolute;left:1rem;right:1rem;bottom:1rem;
+  font-weight:800;font-size:.95rem;color:var(--text);
+  text-shadow:0 1px 0 color-mix(in srgb,var(--bg) 60%,transparent);
+}
+.hover-preview__n{
+  position:absolute;left:1rem;top:1rem;
+  font-size:.72rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--india-green);
+}
+@media (hover:hover) and (pointer:fine) and (min-width:1100px){
+  .hover-preview{display:block}
+  .pillars.pillars-cascade{padding-right:min(300px,40%)}
+}
+@media (max-width:1099px),(pointer:coarse),(hover:none),(prefers-reduced-motion:reduce){
+  .hover-preview{display:none!important}
+}
+
+/* 7) H-strip peek polish — desktop; touch keeps native scroll */
+@media (min-width:1100px){
+  #impact .bento.h-strip{
+    scroll-padding-inline:1.25rem;
+    padding-inline:1.25rem;margin-inline:-1.25rem;
+    gap:1.1rem;
+  }
+  #impact .bento.h-strip > .card{
+    flex:0 0 min(300px,30vw);
+    scroll-snap-align:center;
+  }
+  .services{scroll-padding-inline:1.25rem}
+}
+@media (max-width:1099px),(pointer:coarse){
+  /* no wheel hijack class needed — JS gates it; ensure native touch scroll */
+  #impact .bento.h-strip,
+  .services{
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+    touch-action:pan-x pan-y;
+  }
+}
+
+/* 8) Numbered chapter labels */
+.section > .wrap > .eyebrow[data-chapter]::after,
+.eyebrow[data-chapter]::after{content:none}
+.chapter-tag{
+  display:inline-flex;align-items:center;gap:.45rem;
+  font-size:.72rem;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);margin:0 0 .55rem;
+}
+.chapter-tag__n{
+  font-variant-numeric:tabular-nums;
+  color:var(--india-green);
+  border:1px solid color-mix(in srgb,var(--india-green) 35%,var(--border));
+  border-radius:999px;padding:.2rem .55rem;min-width:2.4rem;justify-content:center;
+  display:inline-flex;background:color-mix(in srgb,var(--india-green) 8%,var(--bg-elev));
+}
+
+/* Soften heavy FX under 1100 / coarse */
+@media (max-width:1099px),(pointer:coarse){
+  .mesh__blob{animation-duration:28s!important;filter:blur(44px)}
+  .mesh__blob--3{opacity:.22}
+  .section-deco{opacity:.42;filter:blur(40px)}
+  .js .reveal--clip:not(.is-in),.js .reveal--mask:not(.is-in),.js .reveal--line:not(.is-in){
+    clip-path:none;mask-image:none;-webkit-mask-image:none;transform:translateY(14px)
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  .js .reveal--line,.js .reveal--mask,.eyebrow--stack .ch,.feature-scrub__layer,.milestone::after{
+    opacity:1!important;transform:none!important;clip-path:none!important;
+    mask-image:none!important;-webkit-mask-image:none!important;transition:none!important;animation:none!important
+  }
+  .grain{opacity:.02}
+}
+
+/* Tap targets */
+.btn,.icon-btn,.device-gate__actions .btn,.motion-gate__actions .btn,
+.motion-gate__os button,#device-continue,#motion-continue{
+  min-height:44px
+}
+.svc-nav .icon-btn{min-width:44px;min-height:44px}
+
 </style></head><body>
+<div class="grain" aria-hidden="true"></div>
 
 <div class="device-gate" id="device-gate" role="presentation">
   <div class="device-gate__card" role="dialog" aria-modal="true" aria-labelledby="device-gate-title">
@@ -1299,7 +1605,7 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
   <div class="hero-float-badge" data-speed="0.32" data-lag="0.62" aria-hidden="true">Digital Public Goods</div>
   <div class="wrap hero__grid">
     <div class="hero__content reveal-stagger">
-      <p class="eyebrow reveal reveal--soft">Digital India · 2015 → 2026</p>
+      <p class="eyebrow eyebrow--stack reveal reveal--soft" aria-label="Digital India · 2015 → 2026"><span class="ch" style="--i:0">D</span><span class="ch" style="--i:1">i</span><span class="ch" style="--i:2">g</span><span class="ch" style="--i:3">i</span><span class="ch" style="--i:4">t</span><span class="ch" style="--i:5">a</span><span class="ch" style="--i:6">l</span><span class="ch" style="--i:7">&nbsp;</span><span class="ch" style="--i:8">I</span><span class="ch" style="--i:9">n</span><span class="ch" style="--i:10">d</span><span class="ch" style="--i:11">i</span><span class="ch" style="--i:12">a</span><span class="ch" style="--i:14"> · 2015 → 2026</span></p>
       <h1 class="reveal reveal--clip">Digi<span class="grad">Sutra</span>: Bharat’s digital public goods</h1>
       <p class="lead reveal reveal--rise" style="margin-top:1rem">Web Wizards AAGAAZ 2026: verified Digital India story for students.</p>
       <div class="hero__ctas reveal reveal--soft">
@@ -1350,8 +1656,9 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
 <section class="section story-scale" id="journey" data-hue="185">
   <div class="story-sticky-visual" aria-hidden="true"><div class="story-mesh story-mesh--journey" data-speed="0.38" data-lag="0.48"></div></div>
   <div class="wrap story-content">
+    <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">01</span> Chapter</p>
     <p class="eyebrow reveal reveal--soft">Timeline</p>
-    <h2 class="reveal reveal--clip">Journey 2015 → 2026</h2>
+    <div class="reveal-line-wrap"><h2 class="reveal reveal--line">Journey 2015 → 2026</h2></div>
     <p class="lead reveal reveal--rise">Verified milestones. The line fills as you scroll.</p>
     <div class="journey-pin reveal reveal--soft" id="journey-pin" aria-live="polite">
       <div class="journey-pin__year" id="journey-pin-year">2015</div>
@@ -1377,9 +1684,12 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
 </section>
 <section class="section" id="pillars" data-hue="175">
   <div class="wrap">
+    <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">02</span> Chapter</p>
     <p class="eyebrow reveal reveal--soft">Foundation</p>
     <h2 class="reveal reveal--pop">Nine pillars</h2>
-    <div class="pillars reveal-stagger pillars-cascade">
+    <div class="pillars-hover-stage">
+    <div class="hover-preview" id="pillar-preview" aria-hidden="true"><span class="hover-preview__n"></span><span class="hover-preview__label"></span></div>
+    <div class="pillars reveal-stagger pillars-cascade" id="pillars-list">
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-tower"/></svg></div><div class="pillar__n">PILLAR 01</div><h3>Broadband Highways</h3><p>High-speed connectivity as a national utility.</p><p><small>BharatNet: &gt;2.15 lakh gram panchayats connected (~97%), ~7 lakh km fibre (Jan 2026).</small></p></article>
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-signal"/></svg></div><div class="pillar__n">PILLAR 02</div><h3>Universal Access to Mobile Connectivity</h3><p>Closing gaps so mobiles become the first computer.</p><p><small>Internet subscribers ~1.11 billion (Jun 2026, TRAI).</small></p></article>
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-kiosk"/></svg></div><div class="pillar__n">PILLAR 03</div><h3>Public Internet Access Programme</h3><p>Shared access for people without personal devices.</p><p><small>Common Service Centres: &gt;6.5 lakh.</small></p></article>
@@ -1390,10 +1700,12 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-laptop"/></svg></div><div class="pillar__n">PILLAR 08</div><h3>IT for Jobs</h3><p>Skills and jobs powered by IT literacy.</p><p><small>PMGDISHA: &gt;6.39 crore rural citizens trained.</small></p></article>
       <article class="pillar card spot"><div class="pillar__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bolt"/></svg></div><div class="pillar__n">PILLAR 09</div><h3>Early Harvest Programmes</h3><p>Quick-win services that build public trust.</p><p><small>Smart Cities Mission covered 100 cities.</small></p></article>
     </div>
+    </div><!-- /.pillars-hover-stage -->
   </div>
 </section>
 <section class="section" id="upi-flow" data-hue="195">
   <div class="wrap">
+    <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">03</span> Chapter</p>
     <p class="eyebrow reveal reveal--soft">Scrollytelling</p>
     <h2 class="reveal reveal--pop">How a UPI payment travels</h2>
     <p class="lead reveal reveal--rise">Four steps. Settlement times vary.</p>
@@ -1437,8 +1749,9 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
 
 <section class="section feature-scrub" id="stack-scrub" data-hue="200">
   <div class="wrap">
+    <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">04</span> Chapter</p>
     <p class="eyebrow reveal reveal--soft">Pinned story</p>
-    <h2 class="reveal reveal--clip">India Stack, layer by layer</h2>
+    <div class="reveal-line-wrap"><h2 class="reveal reveal--line">India Stack, layer by layer</h2></div>
     <p class="lead reveal reveal--rise">Scroll to scrub each layer. Identity, payments, data, and consent stay pinned while the copy steps.</p>
   </div>
   <div class="feature-scrub__runway" id="stack-scrub-runway">
@@ -1484,7 +1797,8 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
     <div class="stack-sticky">
       <div class="stack-stage" id="stack-stage">
         <div class="stack-stage__left">
-          <p class="eyebrow">Ecosystem</p>
+          <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">05</span> Chapter</p>
+    <p class="eyebrow">Ecosystem</p>
           <h2>India Stack layers</h2>
           <div class="stack-tabs-row">
             <button type="button" class="icon-btn stack-arrow" id="stack-prev" aria-label="Previous India Stack tab">‹</button>
@@ -1652,10 +1966,11 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
   <div class="section-deco section-deco--saffron" data-speed="0.3" data-lag="0.55" aria-hidden="true"></div>
   <div class="section-deco section-deco--teal" data-speed="1.05" data-lag="0.45" aria-hidden="true"></div>
   <div class="wrap story-content">
+    <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">06</span> Chapter</p>
     <p class="eyebrow reveal reveal--soft">Impact</p>
     <h2 class="reveal reveal--clip">Digital India in figures</h2>
     <p class="lead reveal reveal--rise">Verified public figures with as-of dates.</p>
-    <div class="bento reveal-stagger h-strip" id="impact-strip">
+    <div class="bento reveal-stagger h-strip" id="impact-strip" data-lenis-prevent>
       <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto" data-lag="0.45"><b data-count="144" data-prefix="&gt;" data-suffix=" Cr">0</b><span>Aadhaar registrations</span><small>as of Mar 2026 · UIDAI</small></div></div></div>
       <div class="card spot tilt" style="padding:0"><div class="bento__parallax-clip"><div class="bento__parallax-inner" data-speed="auto" data-lag="0.55"><div class="bento__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-bank"/></svg></div><b data-count="59.09" data-decimals="2" data-suffix=" Cr">0</b><span>Jan Dhan accounts</span><small>as of Aug 2026 · from 14.72 Cr in Mar 2015</small></div></div></div>
       <div class="card spot tilt"><div class="bento__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-signal"/></svg></div><b data-count="1.11" data-decimals="2" data-prefix="~" data-suffix=" Bn">0</b><span>Internet subscribers</span><small>as of Jun 2026 · TRAI</small></div>
@@ -1669,9 +1984,10 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
 </section>
 <section class="section" id="services" data-hue="160">
   <div class="wrap">
+    <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">07</span> Chapter</p>
     <p class="eyebrow reveal reveal--soft">Services</p>
     <h2 class="reveal reveal--pop">Public digital services</h2>
-    <div class="services reveal-stagger" id="services-track" tabindex="0" aria-label="Service cards, scroll horizontally">
+    <div class="services reveal-stagger" id="services-track" data-lenis-prevent tabindex="0" aria-label="Service cards, scroll horizontally">
       <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-apps"/></svg></div><h3>UMANG</h3><p>2,572 services (Jun 2026), up from 166 in 2017.</p></article>
       <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-id"/></svg></div><h3>DigiLocker</h3><p>&gt;70.69 Cr users; &gt;850 Cr documents (Mar 2026).</p></article>
       <article class="card svc"><div class="svc__ico" aria-hidden="true"><svg class="ico" viewBox="0 0 24 24"><use href="#i-shield"/></svg></div><h3>CoWIN</h3><p>&gt;220 Cr vaccine doses managed.</p></article>
@@ -1689,6 +2005,7 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
 </section>
 <section class="section" id="toolkit" data-hue="150">
   <div class="wrap">
+    <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">08</span> Chapter</p>
     <p class="eyebrow reveal reveal--soft">For students</p>
     <h2 class="reveal reveal--pop">Digital Citizen Toolkit</h2>
     <p class="lead reveal reveal--rise">Flip for tips, then quiz. Nothing is stored.</p>
@@ -1721,6 +2038,7 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
   <div class="story-sticky-visual" aria-hidden="true"><div class="story-mesh story-mesh--vision" data-speed="0.34" data-lag="0.55"></div></div>
   <div class="section-deco" data-speed="0.9" data-lag="0.55" aria-hidden="true"></div>
   <div class="wrap story-content">
+    <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">09</span> Chapter</p>
     <p class="eyebrow reveal reveal--soft">See the Vision</p>
     <h2 class="reveal reveal--pop">Vision 2047</h2>
     <p class="lead reveal reveal--rise">Inclusive AI, trusted public goods, safe digital citizens.</p>
@@ -1753,6 +2071,7 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
 </section>
 <section class="section" id="pledge" data-hue="145">
   <div class="wrap">
+    <p class="chapter-tag" aria-hidden="true"><span class="chapter-tag__n">10</span> Chapter</p>
     <p class="eyebrow reveal reveal--soft">Make the Pledge</p>
     <h2 class="reveal reveal--pop">Responsible digital citizen pledge</h2>
     <form class="pledge-form reveal reveal--rise" id="pledge-form">
@@ -1846,7 +2165,7 @@ const authorMeta = document.querySelector('meta[name="author"]');
 if (authorMeta) authorMeta.content = document.getElementById("footer-credit").textContent;
 
 const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
-const finePointer = matchMedia("(pointer: fine)").matches;
+const finePointer = matchMedia("(pointer: fine)").matches && matchMedia("(hover: hover)").matches;
 const root = document.documentElement;
 
 /* ===== WAKE AFTER DEVICE CONTINUE (Android / small-screen) ===== */
@@ -1903,18 +2222,21 @@ window.addEventListener("digisutra-device-continued", function(){
   function allowed(){
     if (reduceMotion) return false;
     if (motionLocked()) return false;
-    if (document.documentElement.classList.contains("device-continued") && (coarse || narrow)) return false;
-    if (coarse && narrow) return false;
+    /* Touch / coarse / narrow: never trap native scroll (phones, tablets, foldables) */
+    if (matchMedia("(pointer: coarse)").matches) return false;
+    if (matchMedia("(hover: none)").matches) return false;
     if (!matchMedia("(min-width:1100px)").matches) return false;
     if (!matchMedia("(pointer: fine)").matches) return false;
+    if (!matchMedia("(hover: hover)").matches) return false;
+    if (document.documentElement.classList.contains("device-continued")) return false;
     return true;
   }
   let target = window.scrollY || 0;
   let current = target;
   let raf = 0;
   let active = false;
-  const ease = 0.135;
-  const wheelGain = 1;
+  const ease = 0.105;
+  const wheelGain = 1.05;
 
   function setActive(on){
     active = !!on;
@@ -2337,7 +2659,10 @@ window.addEventListener("digisutra-device-continued", function(){
     }
 
     /* ---- WRITES ---- */
-    if (progressEl) progressEl.style.transform = "scaleX(" + p + ")";
+    if (progressEl) {
+      progressEl.style.transform = "scaleX(" + p + ")";
+      try { document.documentElement.style.setProperty("--scroll-p", String(p)); } catch (eP) {}
+    }
     if (window.__navOnScroll) window.__navOnScroll(y, dy);
     if (window.__spy) window.__spy();
 
@@ -2485,6 +2810,18 @@ window.addEventListener("digisutra-device-continued", function(){
     let p = phone ? 1 : progress();
     if (reduceMotion) p = 1;
     if (bar) bar.style.width = (p * 100).toFixed(2) + "%";
+    try { runway.style.setProperty("--cp", String(p)); } catch(eC){}
+    /* Fractional reveal on the next layer for Apple-like scrub */
+    if (!phone && !reduceMotion) {
+      const f = p * steps.length;
+      layers.forEach(function(el, i){
+        let v = 0;
+        if (f >= i + 1) v = 1;
+        else if (f > i) v = f - i;
+        try { el.style.setProperty("--layer-on", v.toFixed(3)); } catch(eF){}
+        el.classList.toggle("is-on", v > 0.55);
+      });
+    }
     const idx = Math.min(steps.length - 1, Math.max(0, Math.floor(p * steps.length - (p >= 1 ? 0.001 : 0))));
     if (idx === last && !phone) return;
     last = idx;
@@ -2497,7 +2834,14 @@ window.addEventListener("digisutra-device-continued", function(){
       if (bar) bar.style.width = "100%";
       return;
     }
-    layers.forEach(function(el, i){ el.classList.toggle("is-on", i <= idx); });
+    /* Layer clip already driven fractionally above on desktop; binary only as fallback */
+    if (phone || reduceMotion) {
+      layers.forEach(function(el, i){
+        const on = i <= idx ? 1 : 0;
+        el.classList.toggle("is-on", !!on);
+        try { el.style.setProperty("--layer-on", String(on)); } catch(eL){}
+      });
+    }
     if (title) title.textContent = titles[idx] || titles[0];
     if (reduceMotion) {
       steps.forEach(function(el){ el.classList.add("is-on"); });
@@ -2520,7 +2864,9 @@ window.addEventListener("digisutra-device-continued", function(){
   if (!strip) return;
   strip.setAttribute("data-lenis-prevent", "");
   strip.addEventListener("wheel", function(e){
-    if (!matchMedia("(min-width:1100px)").matches) return;
+    /* Desktop fine-pointer only — never trap phones/tablets */
+    if (!matchMedia("(min-width:1100px) and (pointer:fine) and (hover:hover)").matches) return;
+    if (reduceMotion) return;
     if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
     if (strip.scrollWidth <= strip.clientWidth + 2) return;
     const atStart = strip.scrollLeft <= 0 && e.deltaY < 0;
@@ -3374,6 +3720,75 @@ window.addEventListener("digisutra-device-continued", function(){
   });
 })();
 
+
+
+/* ===== PASS2: Skiper-style pillars hover preview (desktop only) ===== */
+(function PASS2_HOVER_PREVIEW(){
+  const fine = matchMedia("(hover: hover) and (pointer: fine) and (min-width:1100px)");
+  const preview = document.getElementById("pillar-preview");
+  const list = document.getElementById("pillars-list");
+  const stage = list && list.parentElement;
+  if (!preview || !list || !stage) return;
+  let tx = 0, ty = 0, cx = 0, cy = 0, visible = false, raf = 0;
+  const label = preview.querySelector(".hover-preview__label");
+  const num = preview.querySelector(".hover-preview__n");
+  function loop(){
+    raf = 0;
+    cx += (tx - cx) * 0.12;
+    cy += (ty - cy) * 0.12;
+    preview.style.transform = "translate3d(" + cx.toFixed(1) + "px," + cy.toFixed(1) + "px,0) scale(" + (visible ? 1 : 0.92) + ")";
+    preview.style.opacity = visible ? "1" : "0";
+    if (Math.abs(tx - cx) > 0.2 || Math.abs(ty - cy) > 0.2 || visible) raf = requestAnimationFrame(loop);
+  }
+  function onMove(e){
+    if (!fine.matches || reduceMotion) return;
+    const r = stage.getBoundingClientRect();
+    const pw = preview.offsetWidth || 240;
+    const ph = preview.offsetHeight || 180;
+    tx = Math.min(Math.max(e.clientX - r.left - pw * 0.15, 8), r.width - pw - 8);
+    ty = Math.min(Math.max(e.clientY - r.top - ph * 0.35, 8), r.height - ph - 8);
+    if (!raf) raf = requestAnimationFrame(loop);
+  }
+  list.querySelectorAll(".pillar").forEach(function(card){
+    card.addEventListener("pointerenter", function(){
+      if (!fine.matches || reduceMotion) return;
+      visible = true;
+      if (num) num.textContent = (card.querySelector(".pillar__n") || {}).textContent || "";
+      if (label) label.textContent = (card.querySelector("h3") || {}).textContent || "";
+      const hue = card.dataset.hue || "";
+      preview.style.background =
+        "linear-gradient(145deg, color-mix(in srgb, var(--saffron) 22%, var(--bg-elev)), color-mix(in srgb, var(--india-green) 18%, var(--bg-card)))";
+      if (!raf) raf = requestAnimationFrame(loop);
+    });
+    card.addEventListener("pointermove", onMove, {passive:true});
+  });
+  stage.addEventListener("pointerleave", function(){
+    visible = false;
+    if (!raf) raf = requestAnimationFrame(loop);
+  });
+})();
+
+/* ===== PASS2: anchor scroll via smooth helper (desktop only) ===== */
+(function PASS2_ANCHORS(){
+  document.addEventListener("click", function(e){
+    const a = e.target && e.target.closest && e.target.closest('a[href^="#"]');
+    if (!a) return;
+    const id = a.getAttribute("href");
+    if (!id || id === "#" || id === "#top" && false) {}
+    if (!id || id.length < 2) return;
+    const el = document.querySelector(id);
+    if (!el) return;
+    const useSmooth = document.documentElement.classList.contains("has-smooth-scroll")
+      && typeof window.__digisutraSmoothScrollTo === "function"
+      && !reduceMotion;
+    if (!useSmooth) return; /* native / CSS smooth */
+    e.preventDefault();
+    const top = el.getBoundingClientRect().top + (window.scrollY || 0) - (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 72);
+    window.__digisutraSmoothScrollTo(id === "#top" ? 0 : Math.max(0, top));
+    try { history.pushState(null, "", id); } catch(eH){}
+  });
+})();
+
 /* ===== POLISH: magnetic, spotlight, tilt ===== */
 (function POLISH(){
   /* Ripple always; magnetic/tilt only on fine pointers */
@@ -3404,10 +3819,33 @@ window.addEventListener("digisutra-device-continued", function(){
   document.querySelectorAll(".spot").forEach(card => {
     card.addEventListener("pointermove", e => {
       const r = card.getBoundingClientRect();
-      card.style.setProperty("--spot-x", ((e.clientX - r.left)/r.width*100) + "%");
-      card.style.setProperty("--spot-y", ((e.clientY - r.top)/r.height*100) + "%");
+      const mx = ((e.clientX - r.left)/r.width*100);
+      const my = ((e.clientY - r.top)/r.height*100);
+      card.style.setProperty("--spot-x", mx + "%");
+      card.style.setProperty("--spot-y", my + "%");
+      card.style.setProperty("--mx", mx + "%");
+      card.style.setProperty("--my", my + "%");
     }, {passive:true});
   });
+  /* Document-level mouse depth for hero mesh — desktop hover only */
+  (function mouseDepth(){
+    const ok = matchMedia("(hover: hover) and (pointer: fine)").matches && !reduceMotion;
+    if (!ok) return;
+    let mx = 0.5, my = 0.5, cx = 0.5, cy = 0.5, raf = 0;
+    function loop(){
+      raf = 0;
+      cx += (mx - cx) * 0.08;
+      cy += (my - cy) * 0.08;
+      root.style.setProperty("--mx", cx.toFixed(4));
+      root.style.setProperty("--my", cy.toFixed(4));
+      if (Math.abs(mx - cx) > 0.001 || Math.abs(my - cy) > 0.001) raf = requestAnimationFrame(loop);
+    }
+    window.addEventListener("pointermove", function(e){
+      mx = e.clientX / Math.max(1, innerWidth);
+      my = e.clientY / Math.max(1, innerHeight);
+      if (!raf) raf = requestAnimationFrame(loop);
+    }, {passive:true});
+  })();
   document.querySelectorAll(".tilt").forEach(card => {
     card.addEventListener("pointermove", e => {
       const r = card.getBoundingClientRect();

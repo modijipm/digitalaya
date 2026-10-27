@@ -308,7 +308,7 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 .story-scale{position:relative;transform-origin:center top;transform:scaleY(calc(1 - var(--scale)))}
 .story-scale>*{transform-origin:center top;transform:scaleY(calc(1 / max(0.001,1 - var(--scale))))}
 .story-scale>.wrap,.story-scale>.story-content{position:relative;z-index:1}
-.story-sticky-visual{position:-webkit-sticky;position:sticky;top:0;width:100%;height:58vh;height:58dvh;z-index:0;pointer-events:none;margin:0;overflow:hidden}
+.story-sticky-visual{position:absolute;inset:0;width:100%;height:auto;z-index:0;pointer-events:none;margin:0;overflow:hidden}
 .story-sticky-visual .story-mesh{position:absolute;inset:0;opacity:.55}
 .story-mesh--journey{background:
   radial-gradient(ellipse 70% 55% at 20% 30%,color-mix(in srgb,var(--saffron) 45%,transparent),transparent 70%),
@@ -322,10 +322,10 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
   radial-gradient(ellipse 80% 60% at 50% 20%,color-mix(in srgb,var(--india-green) 35%,transparent),transparent 65%),
   radial-gradient(ellipse 50% 40% at 10% 80%,color-mix(in srgb,var(--saffron) 30%,transparent),transparent 70%)}
 .story-sticky-visual::after{content:"";position:absolute;left:0;right:0;bottom:0;height:55%;background:linear-gradient(to bottom,transparent 0%,color-mix(in srgb,var(--bg) 55%,transparent) 45%,var(--bg) 100%);pointer-events:none}
-.story-content{position:relative;margin-top:-28vh;padding-bottom:1rem}
+.story-content{position:relative;z-index:1;margin-top:0;padding-bottom:0}
 @media (max-width:899px){
-  .story-sticky-visual{height:28vh;height:28dvh}
-  .story-content{margin-top:-12vh;padding:0}
+  .story-sticky-visual{/* absolute overlay — no document height */}
+  .story-content{margin-top:0;padding:0}
   .story-sticky-visual::after{height:70%}
 }
 .story-content .card,.story-content .milestone,.story-content .bento .card{background:color-mix(in srgb,var(--bg-card) 92%,transparent);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
@@ -488,53 +488,48 @@ body.menu-open-scroll-lock{position:fixed;left:0;right:0;width:100%;overflow:hid
 .pillar{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1.1rem 1.2rem;box-shadow:var(--shadow);position:relative;overflow:hidden}
 .pillar::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--tiranga);pointer-events:none;border-radius:var(--radius) var(--radius) 0 0;transform-origin:left center}
 .pillar__n{font-size:.85rem;font-weight:800;color:var(--india-green);letter-spacing:.08em;display:inline-block}
-.js .pillars.pillars-cascade > .pillar{will-change:opacity,transform}
-.js .pillars.pillars-cascade > .pillar:not(.is-in)::before{transform:scaleX(0)}
-.js .pillars.pillars-cascade > .pillar:not(.is-in) .pillar__n{opacity:0;transform:scale(.72)}
-/* Premium cascade keyframes (overshoot spring) */
-@keyframes pillarIn{
-  0%{opacity:0;transform:translateY(42px) scale(.86)}
-  55%{opacity:1;transform:translateY(-4px) scale(1.04)}
-  100%{opacity:1;transform:translateY(0) scale(1)}
+/* Reversible pillar fly: transitions (scroll down IN / past OUT / scroll up IN again) */
+.js .pillars.pillars-cascade > .pillar{
+  will-change:opacity,transform;
+  opacity:0;
+  transform:translateY(42px) scale(.86);
+  transition:
+    opacity .7s cubic-bezier(.22,1,.36,1),
+    transform .85s cubic-bezier(.22,1.2,.36,1),
+    box-shadow .55s var(--ease);
 }
-@keyframes pillarInLeft{
-  0%{opacity:0;transform:translateX(-28px) translateY(36px) scale(.86)}
-  55%{opacity:1;transform:translateX(3px) translateY(-4px) scale(1.04)}
-  100%{opacity:1;transform:translateX(0) translateY(0) scale(1)}
+.js .pillars.pillars-cascade > .pillar::before{
+  transform:scaleX(0);
+  transition:transform .65s cubic-bezier(.22,1,.36,1) .08s;
 }
-@keyframes pillarInRight{
-  0%{opacity:0;transform:translateX(28px) translateY(36px) scale(.86)}
-  55%{opacity:1;transform:translateX(-3px) translateY(-4px) scale(1.04)}
-  100%{opacity:1;transform:translateX(0) translateY(0) scale(1)}
+.js .pillars.pillars-cascade > .pillar .pillar__n{
+  opacity:0;transform:scale(.72);
+  transition:opacity .5s cubic-bezier(.22,1.2,.36,1) .12s,transform .5s cubic-bezier(.22,1.2,.36,1) .12s;
 }
-@keyframes pillarBarIn{from{transform:scaleX(0)}to{transform:scaleX(1)}}
-@keyframes pillarNumIn{
-  0%{opacity:0;transform:scale(.72) translateY(6px)}
-  60%{opacity:1;transform:scale(1.08) translateY(-1px)}
-  100%{opacity:1;transform:scale(1) translateY(0)}
+.js .pillars.pillars-cascade > .pillar:nth-child(odd):not(.is-in):not(.is-away){
+  transform:translateX(-28px) translateY(36px) scale(.86);
 }
-@keyframes pillarEnterFlash{
-  0%{box-shadow:0 0 0 0 rgba(255,153,51,0),var(--shadow)}
-  35%{box-shadow:0 0 0 3px rgba(255,153,51,.55),0 0 28px rgba(19,136,8,.28),var(--shadow)}
-  100%{box-shadow:var(--shadow)}
+.js .pillars.pillars-cascade > .pillar:nth-child(even):not(.is-in):not(.is-away){
+  transform:translateX(28px) translateY(36px) scale(.86);
 }
-.js .pillars.pillars-cascade > .pillar:not(.is-in){opacity:0;transform:translateY(42px) scale(.86);transition:none;animation:none}
 .js .pillars.pillars-cascade > .pillar.is-in{
-  opacity:1;transform:none;transition:none;
-  animation:pillarIn .95s cubic-bezier(.22,1.2,.36,1) both, pillarEnterFlash 1.2s var(--ease) both
+  opacity:1;transform:translateX(0) translateY(0) scale(1);
+  box-shadow:var(--shadow);
 }
-.js .pillars.pillars-cascade > .pillar:nth-child(odd).is-in{animation-name:pillarInLeft,pillarEnterFlash}
-.js .pillars.pillars-cascade > .pillar:nth-child(even).is-in{animation-name:pillarInRight,pillarEnterFlash}
-.js .pillars.pillars-cascade > .pillar.is-in::before{animation:pillarBarIn .7s cubic-bezier(.22,1,.36,1) .12s both}
-.js .pillars.pillars-cascade > .pillar.is-in .pillar__n{animation:pillarNumIn .55s cubic-bezier(.22,1.2,.36,1) .18s both}
-/* Per-card is-in: no long nth-child delays (those fired off-screen when parent peeked). Tiny optional batch delay via JS. */
-.js .pillars.pillars-cascade > .pillar.is-in{animation-delay:0ms,0ms}
-.js .pillars.pillars-cascade > .pillar.is-in::before{animation-delay:.12s}
-.js .pillars.pillars-cascade > .pillar.is-in .pillar__n{animation-delay:.18s}
-/* Phones/coarse: skip lateral slide; keep spring scale+Y */
+.js .pillars.pillars-cascade > .pillar.is-in::before{transform:scaleX(1)}
+.js .pillars.pillars-cascade > .pillar.is-in .pillar__n{opacity:1;transform:scale(1)}
+/* Leave through top while scrolling down */
+.js .pillars.pillars-cascade > .pillar.is-away{
+  opacity:0;transform:translateY(-40px) scale(.9);
+}
+.js .pillars.pillars-cascade > .pillar.is-away::before{transform:scaleX(0);transition-delay:0s}
+.js .pillars.pillars-cascade > .pillar.is-away .pillar__n{opacity:0;transform:scale(.72);transition-delay:0s}
+/* Phones/coarse: no lateral offset — Y-only fly */
 @media(hover:none),(pointer:coarse),(max-width:900px){
-  .js .pillars.pillars-cascade > .pillar:nth-child(odd).is-in,
-  .js .pillars.pillars-cascade > .pillar:nth-child(even).is-in{animation-name:pillarIn,pillarEnterFlash}
+  .js .pillars.pillars-cascade > .pillar:nth-child(odd):not(.is-in):not(.is-away),
+  .js .pillars.pillars-cascade > .pillar:nth-child(even):not(.is-in):not(.is-away){
+    transform:translateY(42px) scale(.86);
+  }
 }
 .upi-story{display:grid;gap:1.5rem}
 @media(min-width:900px){.upi-story{grid-template-columns:1fr 1fr;align-items:start}}
@@ -743,7 +738,7 @@ body{animation:bodyFadeIn .9s var(--ease) both}
 @media(prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .bharat__track,.network,#upi-path,.tabs [role="tab"][aria-selected="true"],.mesh__blob,.btn,.btn--ghost,.icon-btn{animation:none!important}
-  .js .reveal,.js .reveal-stagger>*,.js .reveal--pop,.js .reveal--rise,.js .reveal--tilt,.js .reveal--left,.js .reveal--right,.js .reveal--soft,.js .reveal--fade,.js .pillars.pillars-cascade > .pillar{opacity:1;transform:none;transition:none;animation:none!important}
+  .js .reveal,.js .reveal-stagger>*,.js .reveal--pop,.js .reveal--rise,.js .reveal--tilt,.js .reveal--left,.js .reveal--right,.js .reveal--soft,.js .reveal--fade,.js .pillars.pillars-cascade > .pillar,.js .pillars.pillars-cascade > .pillar.is-away{opacity:1;transform:none;transition:none;animation:none!important}
   .js .pillars.pillars-cascade > .pillar::before,.js .pillars.pillars-cascade > .pillar .pillar__n{opacity:1;transform:none;animation:none!important}
   .js .card.is-in,.js .spot.is-in,.js .stat.is-in,.js .milestone.is-in,.js .metric.is-in,.js .flip.is-in,.js .svc.is-in{animation:none!important}
   .tab-panels .panel.is-active,.tab-panels .panel.is-active .metric{animation:none!important}
@@ -1146,7 +1141,7 @@ html.has-smooth-scroll #scroll-progress{transition:transform .08s linear}
 .mag:hover{box-shadow:0 10px 28px color-mix(in srgb,var(--india-green) 22%,transparent)}
 
 /* ===== DEVICE / TOUCH SAFETY (matrix QA) ===== */
-.story-sticky-visual{height:100vh;height:100svh;height:100dvh}
+.story-sticky-visual{/* overlay fill of .story-scale — do not add vh height to flow */}
 .stack-sticky{height:calc(100vh - var(--nav-h));height:calc(100svh - var(--nav-h));height:calc(100dvh - var(--nav-h))}
 .feature-scrub__sticky{height:calc(100vh - var(--nav-h));height:calc(100svh - var(--nav-h));height:calc(100dvh - var(--nav-h))}
 .stack-stage{height:min(88vh,calc(100svh - var(--nav-h) - 1rem));height:min(88vh,calc(100dvh - var(--nav-h) - 1rem))}
@@ -1268,7 +1263,7 @@ html.has-smooth-scroll{--scroll-ease:1}
   height:calc(100dvh - var(--nav-h));
 }
 .story-sticky-visual{
-  height:100svh;height:100dvh;
+  /* keep absolute inset:0 overlay; mesh parallax only */
 }
 @media (max-width:899px){
   .feature-scrub__runway{min-height:0}
@@ -1276,7 +1271,7 @@ html.has-smooth-scroll{--scroll-ease:1}
     position:relative;top:auto;
     height:auto;min-height:0;
   }
-  .story-sticky-visual{height:36svh;height:36dvh}
+  .story-sticky-visual{/* no vh band on phones */}
   .feature-scrub__layer{clip-path:none;opacity:1;transform:none}
 }
 
@@ -3240,8 +3235,8 @@ window.addEventListener("digisutra-device-continued", function(){
   }
   function pillarClearlyVisible(r, vh){
     if (!r || (!r.width && !r.height)) return false;
-    /* Mid-band: card must sit clearly on screen — not when section header barely peeks */
-    return r.top < vh * 0.82 && r.bottom > vh * 0.18;
+    /* Mid-band: card clearly on screen — not when section header barely peeks */
+    return r.top < vh * 0.88 && r.bottom > vh * 0.12 && r.top < vh * 0.92;
   }
   function markIn(el, useStagger){
     if (!el) return;
@@ -3263,14 +3258,34 @@ window.addEventListener("digisutra-device-continued", function(){
   }
   let pillarBatchIndex = 0;
   let pillarBatchTimer = 0;
+  const pillarPending = new WeakMap();
+  function clearPillarPending(el){
+    const t = pillarPending.get(el);
+    if (t) { clearTimeout(t); pillarPending.delete(el); }
+  }
   function markPillarIn(el){
-    if (!el || el.classList.contains("is-in")) return;
+    if (!el) return;
+    if (el.classList.contains("is-in") && !el.classList.contains("is-away")) return;
+    clearPillarPending(el);
+    el.classList.remove("is-away");
     const i = pillarBatchIndex++;
     clearTimeout(pillarBatchTimer);
     pillarBatchTimer = setTimeout(() => { pillarBatchIndex = 0; }, 80);
     const ms = PILLAR_BATCH[Math.min(i, PILLAR_BATCH.length - 1)] || 0;
-    if (ms) setTimeout(() => el.classList.add("is-in"), ms);
-    else el.classList.add("is-in");
+    const apply = () => {
+      pillarPending.delete(el);
+      el.classList.remove("is-away");
+      el.classList.add("is-in");
+    };
+    if (ms) pillarPending.set(el, setTimeout(apply, ms));
+    else apply();
+  }
+  function markPillarAway(el, throughTop){
+    if (!el) return;
+    clearPillarPending(el);
+    el.classList.remove("is-in");
+    if (throughTop) el.classList.add("is-away");
+    else el.classList.remove("is-away"); /* reset below viewport for next enter */
   }
   function forceNearViewport(all){
     const vh = innerHeight || 800;
@@ -3294,9 +3309,12 @@ window.addEventListener("digisutra-device-continued", function(){
       if (all || (r.top < vh * 1.2 && r.bottom > -vh * 0.15)) c.classList.add("is-in");
     });
     document.querySelectorAll(".pillars-cascade > .pillar").forEach(c => {
-      if (c.classList.contains("is-in")) return;
       const r = c.getBoundingClientRect();
-      if (all || pillarClearlyVisible(r, vh)) markPillarIn(c);
+      if (all || pillarClearlyVisible(r, vh)) { markPillarIn(c); return; }
+      if (c.classList.contains("is-in") || c.classList.contains("is-away")) {
+        if (r.bottom < vh * 0.12) markPillarAway(c, true);
+        else if (r.top > vh * 0.88) markPillarAway(c, false);
+      }
     });
     if (typeof window.__digisutraAnimateUpiBar === "function") {
       window.__digisutraAnimateUpiBar();
@@ -3324,7 +3342,14 @@ window.addEventListener("digisutra-device-continued", function(){
     });
   }
   if (reduceMotion) {
-    document.querySelectorAll(".reveal,.reveal-stagger > *").forEach(el => el.classList.add("is-in"));
+    document.querySelectorAll(".reveal,.reveal-stagger > *").forEach(el => {
+      el.classList.add("is-in");
+      el.classList.remove("is-away");
+    });
+    document.querySelectorAll(".pillars-cascade > .pillar").forEach(el => {
+      el.classList.add("is-in");
+      el.classList.remove("is-away");
+    });
     if (window.__digisutraRegisterWake) window.__digisutraRegisterWake(function(){ forceNearViewport(true); });
     return;
   }
@@ -3337,17 +3362,32 @@ window.addEventListener("digisutra-device-continued", function(){
       io.unobserve(el);
     });
   }, {threshold:[0, 0.12, 0.22, 0.35], rootMargin:"0px 0px -8% 0px"});
-  /* Pillars: stricter mid-band gate — each card alone, no threshold 0 */
-  const pillarIo = new IntersectionObserver(entries => {
-    entries.forEach(en => {
-      if (!en.isIntersecting) return;
-      /* Require a solid share of the card in the mid band */
-      if (en.intersectionRatio < 0.35) return;
-      const el = en.target;
-      markPillarIn(el);
-      pillarIo.unobserve(el);
+  /* Pillars: keep observing + scroll sync — fly IN mid-band, AWAY on leave, reverse on scroll up */
+  const pillarCards = [...document.querySelectorAll(".pillars-cascade > .pillar")];
+  function syncPillars(){
+    const vh = innerHeight || 800;
+    pillarCards.forEach(el => {
+      const r = el.getBoundingClientRect();
+      if (!r.height && !r.width) return;
+      if (pillarClearlyVisible(r, vh)) {
+        markPillarIn(el);
+        return;
+      }
+      if (el.classList.contains("is-in") || el.classList.contains("is-away") || pillarPending.has(el)) {
+        if (r.bottom < vh * 0.16) markPillarAway(el, true); /* past top → fly up */
+        else if (r.top > vh * 0.84) markPillarAway(el, false); /* below → reset for re-enter */
+      }
     });
-  }, {threshold:[0.35, 0.5, 0.65], rootMargin:"-10% 0px -22% 0px"});
+  }
+  let pillarSyncRaf = 0;
+  function queuePillarSync(){
+    if (pillarSyncRaf) return;
+    pillarSyncRaf = requestAnimationFrame(() => { pillarSyncRaf = 0; syncPillars(); });
+  }
+  const pillarIo = new IntersectionObserver(() => { queuePillarSync(); }, {
+    threshold:[0, 0.1, 0.2, 0.35, 0.5, 0.65, 0.8, 1],
+    rootMargin:"0px 0px 0px 0px"
+  });
   document.querySelectorAll(".reveal,.reveal-stagger").forEach(el => {
     if (isPillarsParent(el)) return; /* observe children, not tall parent */
     if (el.classList.contains("reveal") && el.parentElement && el.parentElement.classList.contains("reveal-stagger")) {
@@ -3355,7 +3395,10 @@ window.addEventListener("digisutra-device-continued", function(){
     }
     io.observe(el);
   });
-  document.querySelectorAll(".pillars-cascade > .pillar").forEach(el => pillarIo.observe(el));
+  pillarCards.forEach(el => pillarIo.observe(el));
+  window.addEventListener("scroll", queuePillarSync, {passive:true});
+  window.addEventListener("resize", queuePillarSync, {passive:true});
+  syncPillars();
   function wakeReveals(reason){
     const continued = document.documentElement.classList.contains("device-continued");
     forceNearViewport(false);
@@ -3369,7 +3412,7 @@ window.addEventListener("digisutra-device-continued", function(){
         try { io.unobserve(el); io.observe(el); } catch(e){}
       }
     });
-    document.querySelectorAll(".pillars-cascade > .pillar:not(.is-in)").forEach(el => {
+    document.querySelectorAll(".pillars-cascade > .pillar").forEach(el => {
       try { pillarIo.unobserve(el); pillarIo.observe(el); } catch(e){}
     });
     if (continued || /continued|late|later|wake/.test(String(reason||""))) {
